@@ -1,5 +1,5 @@
 from django.db import models
-from functions.assignment import compare
+from .functions.assignment import compare
 
 # Create your models here.
 class Origin(models.Model):
