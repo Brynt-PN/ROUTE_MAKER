@@ -16,6 +16,8 @@ class Origin(models.Model):
         for nodo in nodos:
             quadrant = compare(origin=self,nodo=nodo)
             nodo.quadrant = quadrant
+            #No olvides que sin Save los cambios se pierden
+            nodo.save()
             nodos_list.append((nodo,nodo.quadrant))
         return nodos_list
     
