@@ -23,8 +23,11 @@ class Nodo(models.Model):
     name = models.CharField(max_length=200)
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lon = models.DecimalField(max_digits=9, decimal_places=6)
-    origin = models.ForeignKey(Origin,on_delete=models.CASCADE, related_name='relational_nodos')
-    quadrant = models.CharField(max_length=2)
+    #Aqui renombramos el Qeryset, que guarda la relacion de 1 a muchos
+    #que existe entre Origin y Nodo, usando relate_name
+    origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
+                             related_name='relational_nodos')
+    quadrant = models.CharField(max_length=3)
 
     def __str__(self) -> str:
         return self.name
