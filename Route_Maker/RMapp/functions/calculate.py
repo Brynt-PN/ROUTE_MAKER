@@ -54,20 +54,21 @@ ordered_nodes_distance = ordered_distance
 
 route = []
 
-i = 0
-
 for nodo_distance in ordered_nodes_distance:
-    if route is None:
-        route = route + nodo_distance[0]
-        i += 1
+    if not route:
+        route.append(nodo_distance)
     else:        
-        distance = get_distance(nodo_distance[0],ordered_nodes_distance[(i+1)][0])
+        distance = get_distance(route[-1][0],nodo_distance[0])
         assignmet_route = compare_distance(distance[1],nodo_distance[1])
+        if assignmet_route == True:
+            route.append(nodo_distance)
+            
+print(route)
 
 
 
 
 
-print(ordered_distance)
+
 
 
