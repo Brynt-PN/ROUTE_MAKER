@@ -1,11 +1,6 @@
 
 from math import sqrt
-
-def get_origin_distance(origin, nodo):
-    #SQRT es la raiz cuadrada
-    distance = sqrt((nodo.lon - origin.lon)**2 + (nodo.lat - origin.lat)**2)
-    nodo.origin_distance = distance
-    nodo.save()
+from .assignment import assign_quadrant_and_distance
 
 def get_nodo_distance(nodo1, nodo2):
     distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo2.lat)**2)
@@ -15,8 +10,7 @@ def compare_distance(dis1,dis2):
     return dis1<=dis2
 
 def create_route(origin):
-
-    origin.assign_quadrant_and_distance()
+    assign_quadrant_and_distance(origin)
     #Aqui utilizamos una lambda para acceder al origin_distance del nodo para ordenarlo
     ordered_nodes_distance = sorted(origin.relational_nodos.filter(has_route = False),
                             key = lambda x: x.origin_distance)
@@ -31,6 +25,8 @@ def create_route(origin):
             route.append(nodo)
             
     print(route)
+
+
 
 
 
