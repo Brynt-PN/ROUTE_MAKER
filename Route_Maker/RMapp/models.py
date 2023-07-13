@@ -29,7 +29,7 @@ class Nodo(models.Model):
     origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
                              related_name='relational_nodos')
     quadrant = models.CharField(max_length=3)
-    origin_distance = models.DecimalField(max_digits=18, decimal_places=8)
+    origin_distance = models.DecimalField(max_digits=18, decimal_places=8, default=0.0)
     #Esto nos ayudara a determinar que nodulos estan libres para nuevas rutas
     has_route = models.BooleanField(default=False)
 
