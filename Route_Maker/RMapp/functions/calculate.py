@@ -3,7 +3,7 @@ from math import sqrt
 from .assignment import assign_quadrant_and_distance
 
 def get_nodo_distance(nodo1, nodo2):
-    distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo2.lat)**2)
+    distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo1.lat)**2)
     return distance
 
 def compare_distance(dis1,dis2):
