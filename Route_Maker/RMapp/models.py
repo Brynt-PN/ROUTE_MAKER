@@ -30,12 +30,16 @@ class Nodo(models.Model):
     origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
                              related_name='relational_nodos')
     quadrant = models.CharField(max_length=3)
+    #Esto nos ayudara a determinar que nodulos estan libres para nuevas rutas
+    has_route = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return self.name
 
 class Route(models.Model):
     path = models.JSONField()
+    origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
+                             related_name='relational_route')
 
     def __str__(self) -> str:
         return self.path
