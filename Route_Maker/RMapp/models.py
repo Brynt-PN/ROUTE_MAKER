@@ -1,5 +1,6 @@
 from django.db import models
 from .functions.assignment import compare
+from .functions.calculate import get_origin_distance
 
 # Create your models here.
 class Origin(models.Model):
@@ -10,16 +11,14 @@ class Origin(models.Model):
     def __str__(self) -> str:
         return self.name
     
-    def assign_quadrant(self):
+    def assign_quadrant_and_distance(self):
         nodos = self.relational_nodos.all()
-        nodos_list = []
         for nodo in nodos:
             quadrant = compare(origin=self,nodo=nodo)
+            get_origin_distance(origin=self,nodo=nodo)
             nodo.quadrant = quadrant
             #No olvides que sin Save los cambios se pierden
             nodo.save()
-            nodos_list.append((nodo,nodo.quadrant))
-        return nodos_list
     
 class Nodo(models.Model):
     name = models.CharField(max_length=200)
@@ -30,6 +29,7 @@ class Nodo(models.Model):
     origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
                              related_name='relational_nodos')
     quadrant = models.CharField(max_length=3)
+    origin_distance = models.DecimalField(max_digits=18, decimal_places=8)
     #Esto nos ayudara a determinar que nodulos estan libres para nuevas rutas
     has_route = models.BooleanField(default=False)
 

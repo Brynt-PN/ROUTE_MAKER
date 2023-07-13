@@ -1,69 +1,36 @@
 
 from math import sqrt
 
-Origin = {
-    'lon' : 0.0,
-    'lat' : 0.0
-}
+def get_origin_distance(origin, nodo):
+    #SQRT es la raiz cuadrada
+    distance = sqrt((nodo.lon - origin.lon)**2 + (nodo.lat - origin.lat)**2)
+    nodo.origin_distance = distance
+    nodo.save()
 
-Nodo_A = {
-    'lon' : 0.68,
-    'lat' : 0.58
-}
-
-Nodo_B = {
-    'lon' : 0.74,
-    'lat' : 2.11
-}
-
-Nodo_C = {
-    'lon' : 2.52,
-    'lat' : 1.8
-}
-
-Nodo_D = {
-    'lon' : 3.54,
-    'lat' : 2.79
-}
-
-Nodo_E = {
-    'lon' : 2.29,
-    'lat' : 3.77
-}
-
-Nodo_F = {
-    'lon' : 4.4,
-    'lat' : 4.09
-}
-
-nodos = [Nodo_A,Nodo_B,Nodo_C,Nodo_D,Nodo_E,Nodo_F]
-
-def get_distance(origin, nodo):
-    distance = sqrt((nodo['lon'] - origin['lon'])**2 + (nodo['lat'] - origin['lat'])**2)
-    return (nodo,distance)
+def get_nodo_distance(nodo1, nodo2):
+    distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo2.lat)**2)
+    return distance
 
 def compare_distance(dis1,dis2):
-    return dis1<dis2
+    return dis1<=dis2
 
-distances = [get_distance(Origin,nodo)for nodo in nodos]
-#Aqui utilizamos una lambda para acceder al segundo elemento de la tupla
-# que contiene la distancia
-ordered_distance = sorted(distances, key = lambda x: x[1])
+def create_route(origin):
 
-ordered_nodes_distance = ordered_distance
+    origin.assign_quadrant_and_distance()
+    #Aqui utilizamos una lambda para acceder al origin_distance del nodo para ordenarlo
+    ordered_nodes_distance = sorted(origin.relational_nodos.filter(has_route = False),
+                            key = lambda x: x.origin_distance)
 
-route = []
+    route = [origin]
 
-for nodo_distance in ordered_nodes_distance:
-    if not route:
-        route.append(nodo_distance)
-    else:        
-        distance = get_distance(route[-1][0],nodo_distance[0])
-        assignmet_route = compare_distance(distance[1],nodo_distance[1])
+    for nodo in ordered_nodes_distance:    
+
+        nodo_distance = get_nodo_distance(route[-1], nodo)
+        assignmet_route = compare_distance(nodo_distance, nodo.origin_distance)
         if assignmet_route == True:
-            route.append(nodo_distance)
+            route.append(nodo)
             
-print(route)
+    print(route)
 
 
 
