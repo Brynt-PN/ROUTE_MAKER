@@ -35,14 +35,15 @@ def assign_quadrant_and_distance(origin):
             get_origin_distance(origin=origin,nodo=nodo)
             
 
-def object_to_coordinates(object):
-     coordinates = {
-          'name' : object.name,
-          'lon'  : object.lon,
-          'lat'  : object.lat
-     }
-     return coordinates
+def object_to_coordinates(data):
+     lst_coordinates = []
+     for nodo in data:
+          nodo_dic = nodo.to_dic()
+          lst_coordinates.append(nodo_dic)
+     return lst_coordinates
 
-def list_to_json(list):
-     json_data = dumps(list, default=object_to_coordinates)
-     return json_data
+def list_to_json(data):
+    lst_dic = object_to_coordinates(data)
+    json_data = dumps(lst_dic)
+    return json_data
+

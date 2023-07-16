@@ -22,7 +22,7 @@ def create_route(origin):
                 nodo.has_route = True
                 nodo.save()
         
-        route_json = list_to_json(list=route)
+        route_json = list_to_json(route)
         origin.relational_route.create(path = route_json)
 
             

@@ -9,6 +9,14 @@ class Origin(models.Model):
     
     def __str__(self) -> str:
         return self.name
+    
+    def to_dic(self):
+        dic_data = {
+            'name' : self.name,
+            'lon'  : self.lon,
+            'lat'  : self.lat
+        }
+        return dic_data
             
     def define_all_routes(self):
         create_route(self)
@@ -27,6 +35,13 @@ class Nodo(models.Model):
 
     def __str__(self) -> str:
         return self.name
+    def to_dic(self):
+        dic_data = {
+            'name' : self.name,
+            'lon'  : self.lon,
+            'lat'  : self.lat
+        }
+        return dic_data
 
 class Route(models.Model):
     path = models.JSONField()
