@@ -1,4 +1,5 @@
 
+from json import dumps
 from math import sqrt
 
 equals = {
@@ -19,6 +20,13 @@ def get_origin_distance(origin, nodo):
     nodo.origin_distance = distance
     nodo.save()
 
+def get_nodo_distance(nodo1, nodo2):
+    distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo1.lat)**2)
+    return distance
+
+def compare_distance(dis1,dis2):
+    return dis1<=dis2
+
 def assign_quadrant_and_distance(origin):
         nodos = origin.relational_nodos.all()
         for nodo in nodos:
@@ -26,3 +34,15 @@ def assign_quadrant_and_distance(origin):
             get_origin_distance(origin=origin,nodo=nodo)
             nodo.quadrant = quadrant
             nodo.save()
+
+def object_to_coordinates(object):
+     coordinates = {
+          'name' : object.name,
+          'lon'  : object.lon,
+          'lat'  : object.lat
+     }
+     return coordinates
+
+def list_to_json(list):
+     json_data = dumps(list, default=object_to_coordinates)
+     return json_data
