@@ -1,5 +1,5 @@
 
-from json import dumps
+import simplejson as json
 from math import sqrt
 
 equals = {
@@ -44,6 +44,6 @@ def object_to_coordinates(data):
 
 def list_to_json(data):
     lst_dic = object_to_coordinates(data)
-    json_data = dumps(lst_dic)
+    json_data = json.dumps(lst_dic, use_decimal=True)
     return json_data
 
