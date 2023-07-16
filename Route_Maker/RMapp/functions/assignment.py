@@ -12,7 +12,8 @@ equals = {
 def compare(origin,nodo):
     lon = origin.lon < nodo.lon
     lat = origin.lat < nodo.lat
-    return equals[(lon,lat)]
+    nodo.quadrant = equals[(lon,lat)]
+    nodo.save()
 
 def get_origin_distance(origin, nodo):
     #SQRT es la raiz cuadrada
@@ -30,10 +31,9 @@ def compare_distance(dis1,dis2):
 def assign_quadrant_and_distance(origin):
         nodos = origin.relational_nodos.all()
         for nodo in nodos:
-            quadrant = compare(origin=origin,nodo=nodo)
+            compare(origin=origin,nodo=nodo)
             get_origin_distance(origin=origin,nodo=nodo)
-            nodo.quadrant = quadrant
-            nodo.save()
+            
 
 def object_to_coordinates(object):
      coordinates = {

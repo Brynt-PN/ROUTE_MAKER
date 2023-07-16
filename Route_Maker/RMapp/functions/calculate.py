@@ -1,8 +1,6 @@
 
 from .assignment import assign_quadrant_and_distance, get_nodo_distance,compare_distance,list_to_json
 
-
-
 def create_route(origin):
     assign_quadrant_and_distance(origin)
 
