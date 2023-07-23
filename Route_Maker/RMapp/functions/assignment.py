@@ -23,7 +23,7 @@ def get_origin_distance(origin, nodo):
 
 def get_nodo_distance(nodo1, nodo2):
     distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo1.lat)**2)
-    return distance
+    return round(distance,8)
 
 def compare_distance(dis1,dis2):
     return dis1<=dis2
