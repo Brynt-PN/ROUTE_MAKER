@@ -25,8 +25,7 @@ def create_route(origin):
         route_json = list_to_json(route)
         origin.relational_route.create(path = route_json)
 
-            
-    print(origin.relational_route.all())
+
 
 
 
