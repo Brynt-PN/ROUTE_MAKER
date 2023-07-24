@@ -17,11 +17,6 @@ def create_route(origin):
 
             nodo_distance = get_nodo_distance(route[-1], nodo)
             assignmet_route = compare_distance(nodo_distance, nodo.origin_distance)
-            diference = nodo_distance - nodo.origin_distance
-            print(f'Nodo anterior {route[-1]}, Nodo evaluado {nodo}')
-            print(f'Distancia de nodo a nodo {nodo_distance}')
-            print(f'Distancia de Origen a Nodo {nodo.origin_distance}')
-            print(f'Asignación de Ruta = {assignmet_route} diferencia {diference}')
             if assignmet_route == True:
                 route.append(nodo)
                 nodo.has_route = True
