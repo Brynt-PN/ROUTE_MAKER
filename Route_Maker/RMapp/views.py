@@ -4,3 +4,5 @@ from django.http import HttpResponse
 def index(request):
     return render(request=request, template_name="RMapp/index.html")
     
+def routes(request):
+    return
