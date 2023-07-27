@@ -25,3 +25,30 @@ AddDestinoBtn.addEventListener('click',()=>{ //Agregamos una funcionalidad al da
 });
 
 // Lógica para enviar los datos al backend cuando se hace clic en el botón "Generate Route"
+const Route_Maker = document.getElementById('RM');//Obtenemos el bton para crear rutas
+Route_Maker.addEventListener('click', () => { //Agregamos duncionalidad al dar Click
+    const Origin = document.getElementById('Origin_form');//Obtenemos el Origen
+    const All_Destinos = document.querySelectorAll('.Destino_input');//Obtenemos lso Destinos
+
+    const Origin_Adress = Origin.value;//Obtenemos los Valores ingresados en el elemento HTML input
+    const Destino_Adress = Array.from(All_Destinos).map(input => input.value);//Convertimos en un Array la lsita de inputs Destinos
+    //Luego con Map (como una lambda de python) Obtenemos el valor ingresado en los imput HTML de Destinos
+
+    const Addresses = [Origin_Adress, ...Destino_Adress];//Convertimos en una lista todas las Direcciones Obtenidas
+
+    fetch('/Create_Routes/',{//Aqui enviamos la solicitud HTTPS al Backend
+        method  : 'POST',
+        headers : {
+            'Content-Type' : 'application/json',
+        },
+        body    : JSON.stringify({ Addresses}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+
+})
