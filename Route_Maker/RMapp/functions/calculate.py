@@ -1,8 +1,8 @@
 
 from .assignment import assign_quadrant_and_distance, get_nodo_distance,compare_distance,list_to_json
-from geopy.geocoders import Nominatim
+import googlemaps
 
-geolocator = Nominatim(user_agent='RMapp')
+gmaps = googlemaps.Client(key='AIzaSyA6Z9NAXTqYc8S0HFYWpLDYdnoFS9BNeAI')
 
 def create_route(origin):
     assign_quadrant_and_distance(origin)
@@ -28,12 +28,15 @@ def create_route(origin):
         route_json = list_to_json(route)
         origin.relational_route.create(path = route_json)
 
-def get_coordinates(Dic):
-    Origin_Point = Dic['Origin']
-    Destino_Points = Dic['Destinos']
-    Origin_Location = geolocator.geocode(Origin_Point)
-    Destino_Locations = [geolocator.geocode(Destino_Point) for Destino_Point in Destino_Points]
-    return Origin_Location, Destino_Locations
+def get_coordinates(Origen, Destinos):
+    Origin_Point = gmaps.geocode(Origen)
+    Destino_Points = [gmaps.geocode(Destino) for Destino in Destinos]
+    return Origin_Point, Destino_Points
+
+
+    
+
+
 
 
 
