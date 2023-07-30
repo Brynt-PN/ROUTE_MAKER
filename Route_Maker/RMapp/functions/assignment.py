@@ -10,42 +10,64 @@ equals = {
         (True,False):'IV'
     }
 
+#Convercion de Objeto Maps a Origen y nodos
+def Point_to_Origin(Origin_Point):
+     from ..models import Origin
+     Origin_Object = Origin(
+          name = Origin_Point[0]['formatted_address'],
+          lat  = Origin_Point[0]['geometry']['location']['lat'],
+          lon  = Origin_Point[0]['geometry']['location']['lng']
+          )
+     Origin_Object.save()
+     return Origin_Object
+
+def Points_to_Nodos(Destino_Points,Origin_Object):
+     for Point in Destino_Points:
+        Nodo = Origin_Object.relational_nodos.create(
+               name = Point[0]['formatted_address'],
+               lat  = Point[0]['geometry']['location']['lat'],
+               lon  = Point[0]['geometry']['location']['lng']               
+          )
+        Nodo.save()
+
+def format_to_object(Origin_Point,Destino_Points):
+     Origin_Object = Point_to_Origin(Origin_Point)
+     Points_to_Nodos(Destino_Points,Origin_Object)
+     return Origin_Object
+
+#Define el cuadrante del nodo en función al origen y lo asigna
 def compare(origin,nodo):
     lon = origin.lon < nodo.lon
     lat = origin.lat < nodo.lat
     nodo.quadrant = equals[(lon,lat)]
     nodo.save()
 
+#Calcula la distancia del Nodo al Origen y la asigna
 def get_origin_distance(origin, nodo):
     #SQRT es la raiz cuadrada
     distance = sqrt((nodo.lon - origin.lon)**2 + (nodo.lat - origin.lat)**2)
     nodo.origin_distance = distance
     nodo.save()
 
+#Calcula la distancia entre dos nodos
 def get_nodo_distance(nodo1, nodo2):
     distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo1.lat)**2)
     decimal_distance = Decimal(str(distance))
     return round(decimal_distance,8)
 
+#Comapra dos distancias
 def compare_distance(dis1,dis2):
     return dis1<=dis2
 
+#Recorre una lista de Nodos y les asigna su cuadrante y distancia al Origen
 def assign_quadrant_and_distance(origin):
         nodos = origin.relational_nodos.all()
         for nodo in nodos:
             compare(origin=origin,nodo=nodo)
             get_origin_distance(origin=origin,nodo=nodo)
             
-
-def object_to_coordinates(data):
-     lst_coordinates = []
-     for nodo in data:
-          nodo_dic = nodo.to_dic()
-          lst_coordinates.append(nodo_dic)
-     return lst_coordinates
-
-def list_to_json(data):
-    lst_dic = object_to_coordinates(data)
-    json_data = json.dumps(lst_dic, use_decimal=True)
+#Convierte una ruta en formato DIC a JSON
+def dic_to_json(data):
+    json_data = json.dumps(data, use_decimal=True)
     return json_data
 
