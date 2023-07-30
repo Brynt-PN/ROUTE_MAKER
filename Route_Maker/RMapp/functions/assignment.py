@@ -45,13 +45,13 @@ def compare(origin,nodo):
 #Calcula la distancia del Nodo al Origen y la asigna
 def get_origin_distance(origin, nodo):
     #SQRT es la raiz cuadrada
-    distance = sqrt((nodo.lon - origin.lon)**2 + (nodo.lat - origin.lat)**2)
+    distance = sqrt((Decimal(nodo.lon) - Decimal(origin.lon))**2 + (Decimal(nodo.lat) - Decimal(origin.lat))**2)
     nodo.origin_distance = distance
     nodo.save()
 
 #Calcula la distancia entre dos nodos
 def get_nodo_distance(nodo1, nodo2):
-    distance = sqrt((nodo2.lon - nodo1.lon)**2 + (nodo2.lat - nodo1.lat)**2)
+    distance = sqrt((Decimal(nodo2.lon) - Decimal(nodo1.lon))**2 + (Decimal(nodo2.lat) - Decimal(nodo1.lat))**2)
     decimal_distance = Decimal(str(distance))
     return round(decimal_distance,8)
 

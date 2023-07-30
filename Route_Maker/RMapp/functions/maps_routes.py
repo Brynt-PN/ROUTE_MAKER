@@ -1,7 +1,8 @@
 
 import requests
 import polyline
-from datetime import datetime
+import json
+from datetime import datetime, timedelta
 
 #Datos contantes
 url = 'https://routes.googleapis.com/directions/v2:computeRoutes'
@@ -13,17 +14,15 @@ headers = {
 }
 
 Time_now = datetime.now()
-Time_data = Time_now.strftime("%Y-%m-%dT%H:%M:%SZ")
+Time_future = Time_now + timedelta(minutes=10)
+Time_data = Time_future.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 #Creación de la DATA para la Solicitud a partir de la Lista de Objetos enrutados
 def Origin_converse_data_route(List_Route):
     Origin = List_Route[0]
     origin = {
         "location": {
-            "latLng": {
-                "latitude": Origin.lat,
-                "longitude": Origin.lon
-            }
+            "latLng": Origin.to_dic()
         }
     }
     return origin
@@ -32,10 +31,7 @@ def Destino_converse_data_route(List_Route):
     Nodo = List_Route[-1]
     Destino = {
         "location": {
-            "latLng": {
-                "latitude": Nodo.lat,
-                "longitude": Nodo.lon
-            }
+            "latLng": Nodo.to_dic()
         }
     }
     return Destino
@@ -45,38 +41,58 @@ def Wapoints_converse_data_route(List_Route):
     for Destino in List_Route[1:-1]:
         wapoint = {
             "location": {
-                "latLng": {
-                    "latitude": Destino.lat,
-                    "longitude": Destino.lon
-                }
+                "latLng": Destino.to_dic()
             }
         }
         Wapoints.append(wapoint)
     return Wapoints
 
 def create_body_data(List_Route):
-    data = {
-        "origin": Origin_converse_data_route(List_Route),
-        "destination": Destino_converse_data_route(List_Route),
-        "waypoints": Wapoints_converse_data_route(List_Route),
-        "travelMode": "DRIVE",
-        "routingPreference": "TRAFFIC_AWARE",
-        "departureTime": Time_data,
-        "computeAlternativeRoutes": False,
-        "routeModifiers": {
-            "avoidTolls": False,
-            "avoidHighways": False,
-            "avoidFerries": False
-        },
-        "languageCode": "en-US",
-        "units": "IMPERIAL"
-    }
-    return data
+    if len(List_Route) >= 3:
+        data = {
+            
+                "origin": Origin_converse_data_route(List_Route),
+                "destination": Destino_converse_data_route(List_Route),
+                "waypoints": Wapoints_converse_data_route(List_Route),
+                "travelMode": "DRIVE",
+                "routingPreference": "TRAFFIC_AWARE",
+                "departureTime": Time_data,
+                "computeAlternativeRoutes": False,
+                "routeModifiers": {
+                    "avoidTolls": False,
+                    "avoidHighways": False,
+                    "avoidFerries": False
+                },
+                "languageCode": "en-US",
+                "units": "IMPERIAL"
+            
+        }
+        return data
+    else:
+        data = {
+            
+                "origin": Origin_converse_data_route(List_Route),
+                "destination": Destino_converse_data_route(List_Route),
+                "travelMode": "DRIVE",
+                "routingPreference": "TRAFFIC_AWARE",
+                "departureTime": Time_data,
+                "computeAlternativeRoutes": False,
+                "routeModifiers": {
+                    "avoidTolls": False,
+                    "avoidHighways": False,
+                    "avoidFerries": False
+                },
+                "languageCode": "en-US",
+                "units": "IMPERIAL"
+        
+        }
+        return data
 
 #Dando formato a la Respuesta
 def response_route(List_Route, Route, Decode_Polyline):
+    List_Objects = [str(Object_Model.name) for Object_Model in List_Route]    
     response = {
-        'Ruta'       : List_Route,
+        'Ruta'       : List_Objects,
         'Data_Route' : Route,
         'Polyline'   : Decode_Polyline
     }
@@ -93,7 +109,8 @@ def get_route(List_Route):
         Route_response = response_route(List_Route,Route,decode_polyline)
         return Route_response
     else:
-        return f'Error en la solicitud, status code {response.status_code}'
+        # Si hay un error, mostrar el código de estado y el mensaje de error de la API de Google Maps
+        return f"ERROR : {response.status_code} TYPO : {type(Data_Route)} CUERPO : {Data_Route} RESPUESTA : {response.text}"
         
 
 

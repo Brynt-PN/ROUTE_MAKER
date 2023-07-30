@@ -12,9 +12,8 @@ class Origin(models.Model):
     
     def to_dic(self):
         dic_data = {
-            'name' : self.name,
-            'lon'  : self.lon,
-            'lat'  : self.lat
+            "latitude": float(self.lat),
+            "longitude": float(self.lon)
         }
         return dic_data
             
@@ -37,9 +36,8 @@ class Nodo(models.Model):
         return self.name
     def to_dic(self):
         dic_data = {
-            'name' : self.name,
-            'lon'  : self.lon,
-            'lat'  : self.lat
+            "latitude": float(self.lat),
+            "longitude": float(self.lon)
         }
         return dic_data
 
