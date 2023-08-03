@@ -1,2 +1,4 @@
 # ROUTE_MAKER
-ROUTE_MAKER  is a project created to simplify the logistical task of creating dispatch routes, taking into account factors such as time, distance, maximum number of points per route, etc.
+This version is currently on hold and is still under construction.
+
+This is an alternative version of the application that would use the Google Maps Route API to show a multi-point route so that the link with the route directions can be shared.
