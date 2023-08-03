@@ -18,7 +18,7 @@ class Origin(models.Model):
         return dic_data
             
     def define_all_routes(self):
-        create_route(self)
+        return create_route(self)
     
 class Nodo(models.Model):
     name = models.CharField(max_length=200)

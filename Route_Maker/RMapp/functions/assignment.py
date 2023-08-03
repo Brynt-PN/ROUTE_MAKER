@@ -79,6 +79,6 @@ def get_route_dic(List):
     
 #Convierte una ruta en formato DIC a JSON
 def dic_to_json(data):
-    json_data = json.dumps(data, use_decimal=True)
+    json_data = json.dumps(data, use_decimal=True,ensure_ascii=False)#Ensure_ascii es para mantener las tildes y otros caracteres
     return json_data
 

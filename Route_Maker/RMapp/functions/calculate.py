@@ -35,6 +35,8 @@ def create_route(origin):
         route_json = dic_to_json(route_dic)
         #Creamos el Objeto Ruta relacionado a el Origen
         origin.relational_route.create(path = route_json)
+    Routes = origin.relational_route.all()
+    return Routes[0]
 
 
 
