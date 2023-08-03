@@ -1,6 +1,5 @@
 
-from .assignment import assign_quadrant_and_distance, get_nodo_distance,compare_distance,dic_to_json,format_to_object
-from .maps_routes import get_route
+from .assignment import assign_quadrant_and_distance, get_nodo_distance,compare_distance,dic_to_json,format_to_object,get_route_dic
 import googlemaps
 
 
@@ -31,8 +30,8 @@ def create_route(origin):
                 route.append(nodo)
                 nodo.has_route = True
                 nodo.save()
-        #Pasamos la Ruta para obtener una ruta de GoogleMaps
-        route_dic = get_route(route)
+        #Pasamos la Ruta para combertirla en un Objeto Route
+        route_dic = get_route_dic(route)
         route_json = dic_to_json(route_dic)
         #Creamos el Objeto Ruta relacionado a el Origen
         origin.relational_route.create(path = route_json)

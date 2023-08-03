@@ -65,7 +65,18 @@ def assign_quadrant_and_distance(origin):
         for nodo in nodos:
             compare(origin=origin,nodo=nodo)
             get_origin_distance(origin=origin,nodo=nodo)
-            
+
+#Combertimos la Lista de Objetos en un Dic
+def get_route_dic(List):
+     Nodos = []
+     route_dic = {
+          'Origin'   : List[0].name,
+          'Destinos' : [Nodos]
+     }
+     for Nodo in List[1:]:
+          Nodos.append(Nodo.name)
+     return route_dic
+    
 #Convierte una ruta en formato DIC a JSON
 def dic_to_json(data):
     json_data = json.dumps(data, use_decimal=True)
