@@ -30,25 +30,58 @@
       <div class="row">
         <!--Rutas Creadas-->
         <div class="col-sl-12 col-md-4 col-lg-4 col-xl-4 text-light py-3">
-            <h2>Rutas</h2>
+            <h2>Routes</h2>
             <div class="list-group">
                 {% for Ruta in Origin.relational_route.all %}
+                <!--Ruta Mostrada-->
                 {% if Ruta.id == Route.id %}
-                <a href="#" class="list-group-item list-group-item-action active" aria-current="true">
-                    
-                    <p>Origen        : {{Ruta.path.2}}</p>
-                  </a>
+                <a href="{% url 'RMapp:routes' Ruta.id %}" class="list-group-item list-group-item-action active list-group-item-dark " aria-current="true">
+                    <p >Inicio        : {{Ruta.json_dic.Origin}}
+                    Final : {{Ruta.json_dic.Destinos.0|last}} </p>
+                </a>
                 {% else %}
-                <a href="#" class="list-group-item list-group-item-action">
-                    <p>Origen        : {{Ruta.path.Origin}}</p>
-                    <p>Destino final : {{Ruta.path.Destinos|last}} </p>
+                <!--Rutas Adicionales-->
+                <a href="{% url 'RMapp:routes' Ruta.id %}" class="list-group-item list-group-item-action list-group-item-dark">
+                   <p>Inicio        : {{Ruta.json_dic.Origin}}
+                   Final : {{Ruta.json_dic.Destinos.0|last}} </p>
                 </a>
                 {% endif %}
                 {% endfor %}
-              </div>
-          
+            </div>
+        </div>
         <!--Detalle de Rutas-->
         <div class="col-sl-12 col-md-8 col-lg-8 col-xl-8 bg-sec text-light py-3">
+          <h2>Detail</h2>
+          <table class="table table-dark">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Origin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>{{Route.json_dic.Origin}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <table class="table table-dark">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Destinations</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for Address in Route.json_dic.Destinos.0%}
+              <tr>
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{Address}}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

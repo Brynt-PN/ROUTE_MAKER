@@ -1,5 +1,6 @@
 from django.db import models
 from .functions.calculate import  create_route
+import simplejson as json
 
 # Create your models here.
 class Origin(models.Model):
@@ -48,4 +49,10 @@ class Route(models.Model):
 
     def __str__(self) -> str:
         return self.path
+    
+    def json_dic(self):
+     Dic = json.loads(self.path)
+     return Dic
+    
+
 
