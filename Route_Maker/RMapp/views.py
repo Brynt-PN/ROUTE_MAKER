@@ -1,11 +1,16 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
+from django.conf import settings
 from .functions.calculate import get_coordinates_and_objects
 from django.urls import reverse
 from .models import Origin, Route, Nodo
 
 def index(request):
-    return render(request=request, template_name="RMapp/index.html")
+    return render(
+        request=request,
+        template_name="RMapp/index.html",
+        context={'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY},
+    )
     
 def create_routes(request):
     if request.method == 'POST':

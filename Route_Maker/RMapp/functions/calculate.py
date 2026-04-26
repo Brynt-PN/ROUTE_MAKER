@@ -1,12 +1,18 @@
-
 from .assignment import assign_quadrant_and_distance, get_nodo_distance,compare_distance,dic_to_json,format_to_object,get_route_dic
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 import googlemaps
 
 
-gmaps = googlemaps.Client(key='AIzaSyA6Z9NAXTqYc8S0HFYWpLDYdnoFS9BNeAI')
+def get_google_maps_client():
+    if not settings.GOOGLE_MAPS_API_KEY:
+        raise ImproperlyConfigured('GOOGLE_MAPS_API_KEY is not configured.')
+
+    return googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
 
 #Obtener coordenadas a partir de direcciones y guardarlas en Objetos Origin y Nodo
 def get_coordinates_and_objects(Origen, Destinos):
+    gmaps = get_google_maps_client()
     Origin_Point = gmaps.geocode(Origen)
     Destino_Points = [gmaps.geocode(Destino) for Destino in Destinos]
     Origin_Object = format_to_object(Origin_Point,Destino_Points)
