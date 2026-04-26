@@ -97,6 +97,34 @@
         <section class="route-panel">
           <div class="route-panel-head compact">
             <div>
+              <p class="route-panel-eyebrow">Historial</p>
+              <h3>Despachos recientes</h3>
+            </div>
+          </div>
+          {% if recent_batch_entries %}
+          <div class="route-place-list">
+            {% for batch in recent_batch_entries %}
+            {% if batch.first_route_id %}
+            <a href="{% url 'RMapp:routes' batch.first_route_id %}" class="route-place-item route-route-card">
+              <span class="route-place-title">{{ batch.name }}</span>
+              <span class="route-place-subtitle">{{ batch.total_stops }} paradas • {{ batch.status }}</span>
+            </a>
+            {% else %}
+            <div class="route-place-item route-route-card">
+              <span class="route-place-title">{{ batch.name }}</span>
+              <span class="route-place-subtitle">{{ batch.total_stops }} paradas • {{ batch.status }}</span>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="route-empty-copy">Cuando generes nuevos despachos, aquí quedarán listos para reabrirlos.</p>
+          {% endif %}
+        </section>
+
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
               <p class="route-panel-eyebrow">Direcciones útiles</p>
               <h3>Favoritos</h3>
             </div>

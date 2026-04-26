@@ -3,10 +3,61 @@ from .functions.calculate import  create_route
 import simplejson as json
 
 # Create your models here.
+class DispatchBatch(models.Model):
+    class Statuses(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        GENERATED = "generated", "Generated"
+
+    organization = models.ForeignKey(
+        'accounts.Organization',
+        on_delete=models.CASCADE,
+        related_name='dispatch_batches',
+    )
+    created_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        related_name='dispatch_batches',
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=160, blank=True)
+    origin_address = models.CharField(max_length=255)
+    total_stops = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=Statuses.choices,
+        default=Statuses.DRAFT,
+    )
+    algorithm_version = models.CharField(max_length=40, default="heuristic-v1")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        if self.name:
+            return self.name
+        return f"Despacho {self.created_at:%Y-%m-%d %H:%M}"
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            origin_label = self.origin_address.split(",")[0][:60]
+            self.name = f"Despacho {origin_label}"
+        super().save(*args, **kwargs)
+
+
 class Origin(models.Model):
     name = models.CharField(max_length=200)
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lon = models.DecimalField(max_digits=9, decimal_places=6)
+    dispatch_batch = models.ForeignKey(
+        'DispatchBatch',
+        on_delete=models.CASCADE,
+        related_name='origins',
+        null=True,
+        blank=True,
+    )
     organization = models.ForeignKey(
         'accounts.Organization',
         on_delete=models.CASCADE,
@@ -51,6 +102,7 @@ class Nodo(models.Model):
 
 class Route(models.Model):
     path = models.JSONField()
+    sequence_number = models.PositiveIntegerField(default=1)
     origin = models.ForeignKey(Origin,on_delete=models.CASCADE,
                              related_name='relational_route')
 
@@ -97,5 +149,51 @@ class SavedPlace(models.Model):
 
     def __str__(self) -> str:
         return self.label or self.address
+
+
+class DispatchStop(models.Model):
+    class Statuses(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ASSIGNED = "assigned", "Assigned"
+        COMPLETED = "completed", "Completed"
+
+    batch = models.ForeignKey(
+        DispatchBatch,
+        on_delete=models.CASCADE,
+        related_name='stops',
+    )
+    nodo = models.OneToOneField(
+        Nodo,
+        on_delete=models.CASCADE,
+        related_name='dispatch_stop',
+        null=True,
+        blank=True,
+    )
+    route = models.ForeignKey(
+        Route,
+        on_delete=models.SET_NULL,
+        related_name='dispatch_stops',
+        null=True,
+        blank=True,
+    )
+    address = models.CharField(max_length=255)
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    route_number = models.PositiveIntegerField(null=True, blank=True)
+    stop_order = models.PositiveIntegerField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20,
+        choices=Statuses.choices,
+        default=Statuses.PENDING,
+    )
+    is_locked = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["route_number", "stop_order", "id"]
+
+    def __str__(self) -> str:
+        return self.address
 
 

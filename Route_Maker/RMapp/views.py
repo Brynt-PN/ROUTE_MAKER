@@ -1,13 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import F, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from urllib.parse import quote
+import simplejson as json
 
 from .functions.calculate import get_coordinates_and_objects
-from .models import Route, SavedPlace
+from .models import DispatchStop, Route, SavedPlace
 from .providers.geoapify import GeoapifyError, get_geocoding_client
 
 
@@ -52,6 +54,25 @@ def _merge_autocomplete_results(local_results: list[dict], remote_results: list[
     return merged
 
 
+def _build_recent_batch_entries(organization, limit: int = 4) -> list[dict]:
+    if not organization:
+        return []
+
+    entries = []
+    for batch in organization.dispatch_batches.all()[:limit]:
+        first_origin = batch.origins.order_by("id").first()
+        first_route = first_origin.relational_route.order_by("sequence_number", "id").first() if first_origin else None
+        entries.append(
+            {
+                "name": batch.name,
+                "total_stops": batch.total_stops,
+                "status": batch.get_status_display(),
+                "first_route_id": first_route.id if first_route else None,
+            }
+        )
+    return entries
+
+
 def _remember_place(organization, address: str, lat, lon, place_kind: str) -> None:
     if not organization:
         return
@@ -90,21 +111,21 @@ def _update_organization_base(organization, origin) -> None:
 
 
 def _build_route_entries(origin, current_route_id: int) -> tuple[list[dict], int]:
-    routes = list(origin.relational_route.order_by("id"))
+    routes = list(origin.relational_route.order_by("sequence_number", "id"))
     entries = []
     current_display_number = 1
 
-    for index, route in enumerate(routes, start=1):
+    for route in routes:
         route_data = route.json_dic()
         stop_count = len(route_data["Destinos"][0])
         entry = {
             "id": route.id,
-            "display_number": index,
+            "display_number": route.sequence_number,
             "stop_count": stop_count,
             "is_current": route.id == current_route_id,
         }
         if route.id == current_route_id:
-            current_display_number = index
+            current_display_number = route.sequence_number
         entries.append(entry)
 
     return entries, current_display_number
@@ -148,15 +169,29 @@ def _build_google_maps_directions_url(origin_name: str, destinations: list[str])
     return url
 
 
-def _build_step_navigation_links(origin_name: str, destinations: list[str]) -> list[dict]:
+def _build_route_payload(origin_name: str, destinations: list[str]) -> str:
+    return json.dumps(
+        {
+            "Origin": origin_name,
+            "Destinos": [destinations],
+        },
+        ensure_ascii=False,
+    )
+
+
+def _build_step_navigation_links(origin_name: str, destinations: list[dict]) -> list[dict]:
     previous_address = origin_name
     step_links = []
 
-    for index, address in enumerate(destinations, start=1):
+    for index, destination in enumerate(destinations, start=1):
+        address = destination["address"]
         step_links.append(
             {
                 "index": index,
                 "address": address,
+                "stop_id": destination.get("stop_id"),
+                "can_move_previous": destination.get("can_move_previous", False),
+                "can_move_next": destination.get("can_move_next", False),
                 "from_address": previous_address,
                 "google_maps_url": (
                     "https://www.google.com/maps/dir/?api=1"
@@ -170,11 +205,46 @@ def _build_step_navigation_links(origin_name: str, destinations: list[str]) -> l
     return step_links
 
 
+def _rebuild_origin_routes(origin) -> dict[int, Route]:
+    dispatch_batch = origin.dispatch_batch
+    if not dispatch_batch:
+        return {}
+
+    stops = list(
+        dispatch_batch.stops.filter(route_number__isnull=False)
+        .order_by("route_number", "stop_order", "id")
+    )
+    grouped_stops: dict[int, list[DispatchStop]] = {}
+    for stop in stops:
+        grouped_stops.setdefault(stop.route_number, []).append(stop)
+
+    origin.relational_route.all().delete()
+
+    routes_by_sequence = {}
+    for normalized_sequence, original_sequence in enumerate(sorted(grouped_stops), start=1):
+        group = grouped_stops[original_sequence]
+        addresses = [stop.address for stop in group]
+        route = origin.relational_route.create(
+            path=_build_route_payload(origin.name, addresses),
+            sequence_number=normalized_sequence,
+        )
+        routes_by_sequence[normalized_sequence] = route
+        for stop_order, stop in enumerate(group, start=1):
+            stop.route = route
+            stop.route_number = normalized_sequence
+            stop.stop_order = stop_order
+            stop.status = DispatchStop.Statuses.ASSIGNED
+            stop.save(update_fields=["route", "route_number", "stop_order", "status", "updated_at"])
+
+    return routes_by_sequence
+
+
 @login_required
 def index(request):
     organization = request.user.organization
     favorite_places = []
     recent_places = []
+    recent_batch_entries = []
     base_location_name = ""
     base_city = ""
     base_lat = ""
@@ -189,6 +259,7 @@ def index(request):
         base_lat = organization.base_lat or ""
         base_lon = organization.base_lon or ""
         country_code = organization.country_code
+        recent_batch_entries = _build_recent_batch_entries(organization)
 
     return render(
         request=request,
@@ -202,6 +273,7 @@ def index(request):
             "country_code": country_code,
             "favorite_places": favorite_places,
             "recent_places": recent_places,
+            "recent_batch_entries": recent_batch_entries,
         },
     )
 
@@ -216,7 +288,7 @@ def create_routes(request):
             return HttpResponseRedirect(redirect_to=reverse("RMapp:index"))
 
         try:
-            origin_object = get_coordinates_and_objects(origen, destinos, request.user.organization)
+            origin_object = get_coordinates_and_objects(origen, destinos, request.user.organization, created_by=request.user)
         except GeoapifyError as exc:
             messages.error(request, str(exc))
             return HttpResponseRedirect(redirect_to=reverse("RMapp:index"))
@@ -287,18 +359,99 @@ def autocomplete(request):
 
 
 @login_required
+def move_stop(request, id: int, stop_id: int):
+    if request.method != "POST":
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(id,)))
+
+    route = get_object_or_404(
+        Route.objects.select_related("origin", "origin__dispatch_batch"),
+        pk=id,
+        origin__organization=request.user.organization,
+    )
+    dispatch_batch = route.origin.dispatch_batch
+    if not dispatch_batch:
+        messages.error(request, "Esta ruta antigua todavía no pertenece a un despacho editable.")
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+
+    stop = get_object_or_404(
+        DispatchStop,
+        pk=stop_id,
+        batch=dispatch_batch,
+        route=route,
+    )
+    direction = request.POST.get("direction")
+    if direction not in {"previous", "next"}:
+        messages.error(request, "Movimiento inválido.")
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+
+    current_route_number = stop.route_number or route.sequence_number
+    existing_route_numbers = list(
+        dispatch_batch.stops.exclude(route_number__isnull=True).values_list("route_number", flat=True)
+    )
+    max_route_number = max(existing_route_numbers) if existing_route_numbers else current_route_number
+
+    if direction == "previous":
+        if current_route_number <= 1:
+            messages.error(request, "La parada ya está en la primera ruta del despacho.")
+            return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+        target_route_number = current_route_number - 1
+    else:
+        target_route_number = current_route_number + 1 if current_route_number < max_route_number else max_route_number + 1
+
+    with transaction.atomic():
+        last_target_order = (
+            dispatch_batch.stops.filter(route_number=target_route_number)
+            .exclude(pk=stop.pk)
+            .count()
+        )
+        stop.route_number = target_route_number
+        stop.stop_order = last_target_order + 1
+        stop.save(update_fields=["route_number", "stop_order", "updated_at"])
+        rebuilt_routes = _rebuild_origin_routes(route.origin)
+
+    target_route = rebuilt_routes.get(min(target_route_number, len(rebuilt_routes)))
+    if not target_route:
+        messages.error(request, "No fue posible reconstruir la ruta de destino.")
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:index"))
+
+    messages.success(request, "La parada fue movida y el despacho quedó actualizado.")
+    return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(target_route.id,)))
+
+
+@login_required
 def routes(request, id):
     route_0 = get_object_or_404(
-        Route.objects.select_related("origin"),
+        Route.objects.select_related("origin", "origin__dispatch_batch"),
         pk=id,
         origin__organization=request.user.organization,
     )
     origin = route_0.origin
     route_data = route_0.json_dic()
-    destinations = route_data["Destinos"][0]
     route_entries, current_route_number = _build_route_entries(origin, route_0.id)
+    dispatch_stops = []
+    if origin.dispatch_batch:
+        dispatch_stops = list(
+            origin.dispatch_batch.stops.filter(route=route_0)
+            .order_by("stop_order", "id")
+        )
+
+    if dispatch_stops:
+        destinations = [stop.address for stop in dispatch_stops]
+        step_link_data = [
+            {
+                "address": stop.address,
+                "stop_id": stop.id,
+                "can_move_previous": current_route_number > 1,
+                "can_move_next": True,
+            }
+            for stop in dispatch_stops
+        ]
+    else:
+        destinations = route_data["Destinos"][0]
+        step_link_data = [{"address": address} for address in destinations]
+
     share_text = _build_share_text(current_route_number, route_data["Origin"], destinations)
-    step_navigation_links = _build_step_navigation_links(route_data["Origin"], destinations)
+    step_navigation_links = _build_step_navigation_links(route_data["Origin"], step_link_data)
     google_maps_directions_url = ""
     if len(destinations) <= 10:
         google_maps_directions_url = _build_google_maps_directions_url(route_data["Origin"], destinations)
@@ -315,6 +468,7 @@ def routes(request, id):
         context={
             "Origin": origin,
             "Route": route_0,
+            "dispatch_batch": origin.dispatch_batch,
             "organization_name": request.user.organization.name if request.user.organization else "",
             "route_destinations": destinations,
             "route_stop_count": len(destinations),

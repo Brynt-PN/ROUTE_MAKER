@@ -46,11 +46,19 @@
           <strong>{{ route_stop_count }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Orden visible</span>
-          <strong>Ruta {{ current_route_number }}</strong>
+          <span class="route-stat-label">Despacho</span>
+          <strong>{{ dispatch_batch.name|default:"Lote actual" }}</strong>
         </div>
       </div>
     </section>
+
+    {% if messages %}
+    <section class="route-alerts">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-0">{{ message }}</div>
+      {% endfor %}
+    </section>
+    {% endif %}
 
     <section class="route-workspace route-results-workspace">
       <aside class="route-panel route-route-list-panel">
@@ -98,6 +106,9 @@
         <div class="route-detail-card">
           <p class="route-panel-eyebrow">Origen</p>
           <h3>{{ Route.json_dic.Origin }}</h3>
+          {% if dispatch_batch %}
+          <p class="route-stop-meta">Despacho con {{ dispatch_batch.total_stops }} paradas totales y {{ total_route_count }} rutas generadas.</p>
+          {% endif %}
         </div>
 
         <div class="route-detail-card">
@@ -121,6 +132,17 @@
               </div>
               <div class="route-stop-actions">
                 <a class="btn route-secondary-btn route-stop-link" href="{{ stop.google_maps_url }}" target="_blank" rel="noopener noreferrer">Abrir en Maps</a>
+                {% if stop.stop_id %}
+                <form method="post" action="{% url 'RMapp:move_stop' Route.id stop.stop_id %}" class="route-stop-move-form">
+                  {% csrf_token %}
+                  {% if stop.can_move_previous %}
+                  <button type="submit" name="direction" value="previous" class="btn route-secondary-btn route-stop-link">Ruta anterior</button>
+                  {% endif %}
+                  {% if stop.can_move_next %}
+                  <button type="submit" name="direction" value="next" class="btn route-secondary-btn route-stop-link">Ruta siguiente</button>
+                  {% endif %}
+                </form>
+                {% endif %}
               </div>
             </div>
             {% endfor %}

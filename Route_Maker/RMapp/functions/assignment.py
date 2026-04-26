@@ -11,18 +11,20 @@ equals = {
     }
 
 #Convercion de Objeto Maps a Origen y nodos
-def Point_to_Origin(Origin_Point, organization):
+def Point_to_Origin(Origin_Point, organization, dispatch_batch=None):
      from ..models import Origin
      Origin_Object = Origin(
           name = Origin_Point['formatted_address'],
           lat  = Origin_Point['latitude'],
           lon  = Origin_Point['longitude'],
+          dispatch_batch=dispatch_batch,
           organization=organization,
           )
      Origin_Object.save()
      return Origin_Object
 
-def Points_to_Nodos(Destino_Points,Origin_Object):
+def Points_to_Nodos(Destino_Points,Origin_Object, dispatch_batch=None):
+     from ..models import DispatchStop
      for Point in Destino_Points:
         Nodo = Origin_Object.relational_nodos.create(
                name = Point['formatted_address'],
@@ -30,10 +32,18 @@ def Points_to_Nodos(Destino_Points,Origin_Object):
                lon  = Point['longitude']
           )
         Nodo.save()
+        if dispatch_batch:
+            DispatchStop.objects.create(
+                batch=dispatch_batch,
+                nodo=Nodo,
+                address=Point['formatted_address'],
+                lat=Point['latitude'],
+                lon=Point['longitude'],
+            )
 
-def format_to_object(Origin_Point,Destino_Points, organization):
-     Origin_Object = Point_to_Origin(Origin_Point, organization)
-     Points_to_Nodos(Destino_Points,Origin_Object)
+def format_to_object(Origin_Point,Destino_Points, organization, dispatch_batch=None):
+     Origin_Object = Point_to_Origin(Origin_Point, organization, dispatch_batch=dispatch_batch)
+     Points_to_Nodos(Destino_Points,Origin_Object, dispatch_batch=dispatch_batch)
      return Origin_Object
 
 #Define el cuadrante del nodo en función al origen y lo asigna
