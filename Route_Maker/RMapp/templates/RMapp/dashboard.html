@@ -27,8 +27,8 @@
         <span class="route-org ms-lg-3">{{ organization_name }}</span>
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
           <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}"><i class="bi bi-plus-square"></i><span>Nuevo despacho</span></a>
-          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}"><i class="bi bi-sliders2"></i><span>Configuración</span></a>
-          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}"><i class="bi bi-sliders2"></i><span>Configuracion</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesion</span></a>
         </div>
       </div>
     </div>
@@ -38,7 +38,7 @@
     <section class="route-hero route-hero-compact">
       <div>
         <p class="route-kicker">Dashboard</p>
-        <h1>Controla despachos, rutas y ejecución desde una sola vista.</h1>
+        <h1>Controla despachos, rutas y ejecucion desde una sola vista.</h1>
         <p class="route-hero-copy">Usa este panel como entrada principal del negocio: crea despachos, reabre los recientes y entra al planner cuando necesites una corrida nueva.</p>
       </div>
       <div class="route-hero-stats">
@@ -61,7 +61,7 @@
       <div class="route-panel route-planner-panel">
         <div class="route-panel-head">
           <div>
-            <p class="route-panel-eyebrow">Accesos rápidos</p>
+            <p class="route-panel-eyebrow">Accesos rapidos</p>
             <h2><i class="bi bi-grid-1x2"></i>Todo lo importante</h2>
           </div>
         </div>
@@ -71,12 +71,12 @@
             <span class="route-place-subtitle">Carga el origen, agrega destinos y genera rutas operativas.</span>
           </a>
           <a href="{% url 'accounts:settings' %}" class="route-place-item route-route-card route-dashboard-card">
-            <span class="route-place-title"><i class="bi bi-sliders2"></i>Configuración</span>
-            <span class="route-place-subtitle">Ajusta país, ciudad, base operativa y máximo de paradas.</span>
+            <span class="route-place-title"><i class="bi bi-sliders2"></i>Configuracion</span>
+            <span class="route-place-subtitle">Ajusta pais, ciudad, base operativa y maximo de paradas.</span>
           </a>
-          <a href="{% url 'landing' %}" class="route-place-item route-route-card route-dashboard-card">
-            <span class="route-place-title"><i class="bi bi-megaphone"></i>Landing pública</span>
-            <span class="route-place-subtitle">Revisa la página informativa y los CTA del producto.</span>
+          <a href="{% url 'accounts:logout' %}" class="route-place-item route-route-card route-dashboard-card">
+            <span class="route-place-title"><i class="bi bi-box-arrow-right"></i>Cerrar sesion</span>
+            <span class="route-place-subtitle">Sal de la cuenta actual cuando cierres la operacion del dia.</span>
           </a>
         </div>
       </div>
@@ -85,8 +85,8 @@
         <section class="route-panel">
           <div class="route-panel-head compact">
             <div>
-              <p class="route-panel-eyebrow">Últimos despachos</p>
-              <h3><i class="bi bi-box-seam"></i>Reabre rápido</h3>
+              <p class="route-panel-eyebrow">Ultimos despachos</p>
+              <h3><i class="bi bi-box-seam"></i>Reabre rapido</h3>
             </div>
           </div>
           {% if recent_batch_entries %}
@@ -101,7 +101,7 @@
             {% endfor %}
           </div>
           {% else %}
-          <p class="route-empty-copy">Todavía no tienes despachos generados en este negocio.</p>
+          <p class="route-empty-copy">Todavia no tienes despachos generados en este negocio.</p>
           {% endif %}
         </section>
 
@@ -115,7 +115,7 @@
           <div class="route-place-list">
             <div class="route-place-item route-route-card">
               <span class="route-place-title"><i class="bi bi-geo-alt-fill"></i>Origen base</span>
-              <span class="route-place-subtitle">{{ base_location_name|default:"Aún no configurado" }}</span>
+              <span class="route-place-subtitle">{{ base_location_name|default:"Aun no configurado" }}</span>
             </div>
             <div class="route-place-item route-route-card">
               <span class="route-place-title"><i class="bi bi-buildings"></i>Ciudad</span>
@@ -127,9 +127,9 @@
         <section class="route-panel route-info-panel">
           <p class="route-panel-eyebrow"><i class="bi bi-lightning-charge"></i>Recomendado</p>
           <ol class="route-info-list">
-            <li>Define la base del negocio antes del primer despacho del día.</li>
+            <li>Define la base del negocio antes del primer despacho del dia.</li>
             <li>Genera el lote completo y corrige solo las excepciones manualmente.</li>
-            <li>Reabre los despachos recientes cuando necesites revisar una ejecución.</li>
+            <li>Reabre los despachos recientes cuando necesites revisar una ejecucion.</li>
           </ol>
         </section>
       </div>

@@ -90,6 +90,48 @@ body.route-landing-page {
     padding: 1.35rem 0 2rem;
 }
 
+.route-loading-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(8, 10, 14, 0.72);
+    backdrop-filter: blur(8px);
+}
+
+.route-loading-card {
+    width: min(360px, calc(100vw - 2rem));
+    padding: 1.35rem 1.2rem;
+    border-radius: 1.25rem;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(34, 41, 50, 0.98), rgba(18, 22, 28, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.route-loading-card strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+}
+
+.route-loading-card p {
+    color: var(--rm-muted);
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.route-loading-spinner {
+    width: 2.35rem;
+    height: 2.35rem;
+    margin-bottom: 0.9rem;
+    color: var(--rm-accent);
+}
+
 .route-hero {
     display: grid;
     grid-template-columns: 1.6fr 1fr;

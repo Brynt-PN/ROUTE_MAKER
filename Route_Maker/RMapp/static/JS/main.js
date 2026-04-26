@@ -238,8 +238,40 @@ if (addDestinoBtn) {
 
 const routeMaker = document.getElementById("RM");
 const form = document.getElementById("FA");
+const loadingOverlay = document.getElementById("route-loading-overlay");
+let isSubmittingRoutes = false;
+
+function setRouteSubmitState(submitting) {
+    if (routeMaker) {
+        routeMaker.disabled = submitting;
+        routeMaker.innerHTML = submitting
+            ? '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span>Generando...</span>'
+            : '<i class="bi bi-diagram-3"></i><span>Generar rutas</span>';
+    }
+
+    if (addDestinoBtn) {
+        addDestinoBtn.disabled = submitting;
+    }
+
+    if (loadingOverlay) {
+        loadingOverlay.hidden = !submitting;
+    }
+}
+
 if (routeMaker && form) {
     routeMaker.addEventListener("click", () => {
+        if (typeof form.requestSubmit === "function") {
+            form.requestSubmit();
+            return;
+        }
         form.submit();
+    });
+
+    form.addEventListener("submit", () => {
+        if (isSubmittingRoutes) {
+            return;
+        }
+        isSubmittingRoutes = true;
+        setRouteSubmitState(true);
     });
 }
