@@ -7,6 +7,13 @@ class Origin(models.Model):
     name = models.CharField(max_length=200)
     lat = models.DecimalField(max_digits=9, decimal_places=6)
     lon = models.DecimalField(max_digits=9, decimal_places=6)
+    organization = models.ForeignKey(
+        'accounts.Organization',
+        on_delete=models.CASCADE,
+        related_name='origins',
+        null=True,
+        blank=True,
+    )
     
     def __str__(self) -> str:
         return self.name

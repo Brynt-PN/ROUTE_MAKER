@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Route Maker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+</head>
+<body class="bg-dark text-light">
+  <main class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-8 col-lg-5">
+        <div class="card bg-secondary-subtle border-0 shadow-lg">
+          <div class="card-body p-4 p-lg-5">
+            <h1 class="h3 text-dark mb-3">Route Maker</h1>
+            <p class="text-secondary mb-4">Ingresa para gestionar tus despachos y generar rutas optimizadas.</p>
+            <form method="post">
+              {% csrf_token %}
+              {% if form.non_field_errors %}
+              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+              {% endif %}
+              <div class="mb-3">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="text-danger small mt-1">{{ form.username.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <div class="mb-4">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+                {% if form.password.errors %}
+                <div class="text-danger small mt-1">{{ form.password.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+              <button class="btn btn-dark w-100" type="submit">Entrar</button>
+            </form>
+            <p class="text-secondary mt-4 mb-0">¿Aún no tienes cuenta? <a href="{% url 'accounts:register' %}">Crear cuenta</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

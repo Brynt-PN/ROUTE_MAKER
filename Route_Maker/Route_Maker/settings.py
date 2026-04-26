@@ -44,7 +44,7 @@ DEBUG = get_bool_env('DJANGO_DEBUG', default=True)
 ALLOWED_HOSTS = [
     host.strip() for host in os.getenv(
         'DJANGO_ALLOWED_HOSTS',
-        '127.0.0.1,localhost,BryntPN.pythonanywhere.com',
+        '127.0.0.1,localhost,testserver,BryntPN.pythonanywhere.com',
     ).split(',') if host.strip()
 ]
 
@@ -52,6 +52,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts.apps.AccountsConfig',
     'RMapp.apps.RmappConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -110,7 +111,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / os.getenv('SQLITE_DB_NAME', 'db.local.sqlite3'),
         }
     }
 
@@ -155,3 +156,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTH_USER_MODEL = 'accounts.User'
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'RMapp:index'
+LOGOUT_REDIRECT_URL = 'accounts:login'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

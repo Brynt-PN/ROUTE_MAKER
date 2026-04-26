@@ -11,11 +11,11 @@ def get_google_maps_client():
     return googlemaps.Client(key=settings.GOOGLE_MAPS_API_KEY)
 
 #Obtener coordenadas a partir de direcciones y guardarlas en Objetos Origin y Nodo
-def get_coordinates_and_objects(Origen, Destinos):
+def get_coordinates_and_objects(Origen, Destinos, organization):
     gmaps = get_google_maps_client()
     Origin_Point = gmaps.geocode(Origen)
     Destino_Points = [gmaps.geocode(Destino) for Destino in Destinos]
-    Origin_Object = format_to_object(Origin_Point,Destino_Points)
+    Origin_Object = format_to_object(Origin_Point,Destino_Points, organization)
     return Origin_Object
 
 

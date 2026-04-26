@@ -11,12 +11,13 @@ equals = {
     }
 
 #Convercion de Objeto Maps a Origen y nodos
-def Point_to_Origin(Origin_Point):
+def Point_to_Origin(Origin_Point, organization):
      from ..models import Origin
      Origin_Object = Origin(
           name = Origin_Point[0]['formatted_address'],
           lat  = Origin_Point[0]['geometry']['location']['lat'],
-          lon  = Origin_Point[0]['geometry']['location']['lng']
+          lon  = Origin_Point[0]['geometry']['location']['lng'],
+          organization=organization,
           )
      Origin_Object.save()
      return Origin_Object
@@ -30,8 +31,8 @@ def Points_to_Nodos(Destino_Points,Origin_Object):
           )
         Nodo.save()
 
-def format_to_object(Origin_Point,Destino_Points):
-     Origin_Object = Point_to_Origin(Origin_Point)
+def format_to_object(Origin_Point,Destino_Points, organization):
+     Origin_Object = Point_to_Origin(Origin_Point, organization)
      Points_to_Nodos(Destino_Points,Origin_Object)
      return Origin_Object
 
