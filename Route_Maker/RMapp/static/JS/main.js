@@ -1,6 +1,7 @@
 const autocompleteUrl = window.routeMakerConfig?.autocompleteUrl;
 const autocompleteState = new WeakMap();
 const autocompleteCache = new Map();
+let activeInput = null;
 
 function debounce(fn, wait) {
     let timeoutId;
@@ -34,6 +35,7 @@ function closeMenu(input) {
 
 function selectSuggestion(input, value) {
     input.value = value;
+    activeInput = input;
     closeMenu(input);
 }
 
@@ -67,6 +69,7 @@ function renderSuggestions(input, results) {
 async function fetchSuggestions(input) {
     const query = input.value.trim();
     const state = getAutocompleteState(input);
+
     if (query.length < 3 || !autocompleteUrl) {
         closeMenu(input);
         return;
@@ -115,7 +118,10 @@ function bindAutocomplete(input) {
     getAutocompleteState(input);
     const debouncedFetch = debounce(() => fetchSuggestions(input), 120);
     input.addEventListener("input", debouncedFetch);
-    input.addEventListener("focus", debouncedFetch);
+    input.addEventListener("focus", () => {
+        activeInput = input;
+        debouncedFetch();
+    });
     input.addEventListener("blur", () => {
         setTimeout(() => closeMenu(input), 120);
     });
@@ -134,13 +140,21 @@ document.addEventListener("click", (event) => {
     });
 });
 
+document.querySelectorAll(".quick-place-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+        const targetInput = activeInput || document.getElementById("Origin_form");
+        targetInput.value = button.dataset.address || "";
+        targetInput.focus();
+    });
+});
+
 const addDestinoBtn = document.getElementById("Add-Detino-btn");
 addDestinoBtn.addEventListener("click", () => {
     const containerDestinos = document.getElementById("destinos");
     const newDestino = document.createElement("div");
     newDestino.className = "mb-3 autocomplete-field";
     newDestino.innerHTML = `
-    <input type="text" class="form-control route-autocomplete Destino_input" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
+      <input type="text" class="form-control route-input route-autocomplete Destino_input" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
     `;
     containerDestinos.appendChild(newDestino);
     bindAutocomplete(newDestino.querySelector(".Destino_input"));

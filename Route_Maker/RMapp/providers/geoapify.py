@@ -30,7 +30,15 @@ class GeoapifyClient:
             "longitude": result["lon"],
         }
 
-    def autocomplete(self, text: str, *, limit: int = 5) -> list[dict[str, Any]]:
+    def autocomplete(
+        self,
+        text: str,
+        *,
+        limit: int = 5,
+        country_bias: str = "",
+        country_filter: str = "",
+        proximity: tuple[float, float] | None = None,
+    ) -> list[dict[str, Any]]:
         if not text.strip():
             return []
 
@@ -41,11 +49,22 @@ class GeoapifyClient:
             "lang": settings.GEOAPIFY_AUTOCOMPLETE_LANG,
         }
 
-        if settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS:
-            params["bias"] = f"countrycode:{settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS}"
+        selected_country_bias = country_bias or settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS
+        selected_country_filter = country_filter or settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER
+        bias_values = []
 
-        if settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER:
-            params["filter"] = f"countrycode:{settings.GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER}"
+        if proximity:
+            lon, lat = proximity
+            bias_values.append(f"proximity:{lon},{lat}")
+
+        if selected_country_bias:
+            bias_values.append(f"countrycode:{selected_country_bias}")
+
+        if bias_values:
+            params["bias"] = "|".join(bias_values)
+
+        if selected_country_filter:
+            params["filter"] = f"countrycode:{selected_country_filter}"
 
         data = self._request("autocomplete", params)
         results = [

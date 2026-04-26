@@ -60,6 +60,42 @@ class Route(models.Model):
     def json_dic(self):
      Dic = json.loads(self.path)
      return Dic
-    
+
+
+class SavedPlace(models.Model):
+    class PlaceKinds(models.TextChoices):
+        ORIGIN = "origin", "Origin"
+        DESTINATION = "destination", "Destination"
+
+    organization = models.ForeignKey(
+        'accounts.Organization',
+        on_delete=models.CASCADE,
+        related_name='saved_places'
+    )
+    label = models.CharField(max_length=120, blank=True)
+    address = models.CharField(max_length=255)
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lon = models.DecimalField(max_digits=9, decimal_places=6)
+    place_kind = models.CharField(
+        max_length=20,
+        choices=PlaceKinds.choices,
+        default=PlaceKinds.DESTINATION,
+    )
+    is_favorite = models.BooleanField(default=False)
+    usage_count = models.PositiveIntegerField(default=0)
+    last_used_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-is_favorite", "-usage_count", "-last_used_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "address", "place_kind"],
+                name="unique_saved_place_per_org_and_kind",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return self.label or self.address
 
 

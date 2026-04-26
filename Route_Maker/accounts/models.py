@@ -6,6 +6,10 @@ from django.utils.text import slugify
 class Organization(models.Model):
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=170, unique=True, blank=True)
+    country_code = models.CharField(max_length=2, default="pe")
+    base_location_name = models.CharField(max_length=200, blank=True)
+    base_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    base_lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

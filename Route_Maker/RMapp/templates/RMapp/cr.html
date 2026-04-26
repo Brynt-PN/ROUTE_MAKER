@@ -1,94 +1,104 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{Origin}}</title>
-  <!--BOOSTRAP CSS-->
+  <title>{{ Origin }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-  <!--CSS-->
   <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
 </head>
-<body class='bg-dark'>
-  <!--Navbar-->
-    <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <span class="navbar-text ms-lg-3">{{ organization_name }}</span>
-          <div class="navbar-nav ms-auto">
-            <a class="nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
-            <a class="nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER"><img src="https://cdn.icon-icons.com/icons2/2429/PNG/512/github_logo_icon_147285.png"  alt="logo GitHub" width='16'>    Repositorio</a>
-            <a class="nav-link" href="https://www.linkedin.com/in/brayant-palomino-navarro/"><img src="https://w7.pngwing.com/pngs/370/508/png-transparent-logo-linkedin-computer-icons-social-media-linked-angle-text-logo.png"  alt="logo linkedin" width='16'>   Autor</a>
-          </div>
-        </div>
-      </div>
-    </nav>
-    <!--CONTENIDO-->
-    <div class="container my-5 bg-color">
-      <div class="row">
-        <!--Rutas Creadas-->
-        <div class="col-sl-12 col-md-4 col-lg-4 col-xl-4 text-light py-3">
-            <h2>Routes</h2>
-            <div class="list-group">
-                {% for Ruta in Origin.relational_route.all %}
-                <!--Ruta Mostrada-->
-                {% if Ruta.id == Route.id %}
-                <a href="{% url 'RMapp:routes' Ruta.id %}" class="list-group-item list-group-item-action active list-group-item-dark " aria-current="true">
-                    <p >Inicio        : {{Ruta.json_dic.Origin}}
-                    Final : {{Ruta.json_dic.Destinos.0|last}} </p>
-                </a>
-                {% else %}
-                <!--Rutas Adicionales-->
-                <a href="{% url 'RMapp:routes' Ruta.id %}" class="list-group-item list-group-item-action list-group-item-dark">
-                   <p>Inicio        : {{Ruta.json_dic.Origin}}
-                   Final : {{Ruta.json_dic.Destinos.0|last}} </p>
-                </a>
-                {% endif %}
-                {% endfor %}
-            </div>
-        </div>
-        <!--Detalle de Rutas-->
-        <div class="col-sl-12 col-md-8 col-lg-8 col-xl-8 bg-sec text-light py-3">
-          <h2>Detail</h2>
-          <table class="table table-dark">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Origin</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">1</th>
-                <td>{{Route.json_dic.Origin}}</td>
-              </tr>
-            </tbody>
-          </table>
-          <table class="table table-dark">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Destinations</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for Address in Route.json_dic.Destinos.0%}
-              <tr>
-                <th scope="row">{{ forloop.counter }}</th>
-                <td>{{Address}}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+<body class="route-body">
+  <nav class="navbar navbar-expand-lg route-navbar">
+    <div class="container-fluid route-shell">
+      <a class="navbar-brand route-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <span class="route-org ms-lg-3">{{ organization_name }}</span>
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
+          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}">Nueva ruta</a>
         </div>
       </div>
     </div>
-    <!--BOOSTRAP JS-->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+  </nav>
+
+  <main class="route-shell route-page">
+    <section class="route-hero route-hero-compact">
+      <div>
+        <p class="route-kicker">Resultado</p>
+        <h1>Ruta generada</h1>
+        <p class="route-hero-copy">Revisa el origen, el orden de las paradas y la lista de rutas asociadas a este despacho.</p>
+      </div>
+      <div class="route-hero-stats">
+        <div class="route-stat-card">
+          <span class="route-stat-label">Origen</span>
+          <strong>{{ Route.json_dic.Origin }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Paradas</span>
+          <strong>{{ route_stop_count }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Ruta actual</span>
+          <strong>#{{ Route.id }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="route-workspace">
+      <div class="route-panel route-sidebar">
+        <div class="route-panel-head compact">
+          <div>
+            <p class="route-panel-eyebrow">Rutas guardadas</p>
+            <h3>Despachos generados</h3>
+          </div>
+        </div>
+        <div class="route-place-list">
+          {% for Ruta in Origin.relational_route.all %}
+          <a href="{% url 'RMapp:routes' Ruta.id %}" class="route-place-item {% if Ruta.id == Route.id %}is-active{% endif %}">
+            <span class="route-place-title">Ruta #{{ Ruta.id }}</span>
+            <span class="route-place-subtitle">{{ Ruta.json_dic.Destinos.0|length }} paradas</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="route-panel route-detail-panel">
+        <div class="route-detail-card">
+          <p class="route-panel-eyebrow">Origen</p>
+          <h3>{{ Route.json_dic.Origin }}</h3>
+        </div>
+
+        <div class="route-detail-card">
+          <div class="route-detail-header">
+            <div>
+              <p class="route-panel-eyebrow">Secuencia</p>
+              <h3>Paradas del despacho</h3>
+            </div>
+            <span class="route-badge">{{ route_stop_count }} destinos</span>
+          </div>
+
+          <div class="route-stop-list">
+            {% for address in route_destinations %}
+            <div class="route-stop-item">
+              <span class="route-stop-index">{{ forloop.counter }}</span>
+              <div>
+                <strong>{{ address }}</strong>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 </body>
 </html>

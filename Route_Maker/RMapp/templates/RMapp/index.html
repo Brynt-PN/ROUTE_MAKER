@@ -1,72 +1,149 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Route Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
 </head>
-<body class="bg-dark">
-  <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
+<body class="route-body">
+  <nav class="navbar navbar-expand-lg route-navbar">
+    <div class="container-fluid route-shell">
+      <a class="navbar-brand route-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-        <span class="navbar-text ms-lg-3">{{ organization_name }}</span>
-        <div class="navbar-nav ms-auto">
-          <a class="nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
-          <a class="nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER"><img src="https://cdn.icon-icons.com/icons2/2429/PNG/512/github_logo_icon_147285.png" alt="logo GitHub" width="16"> Repositorio</a>
-          <a class="nav-link" href="https://www.linkedin.com/in/brayant-palomino-navarro/"><img src="https://w7.pngwing.com/pngs/370/508/png-transparent-logo-linkedin-computer-icons-social-media-linked-angle-text-logo.png" alt="logo linkedin" width="16"> Autor</a>
+        <span class="route-org ms-lg-3">{{ organization_name }}</span>
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
+          <a class="nav-link route-nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER">Repositorio</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="container my-5 bg-color">
-    {% if messages %}
-    <div class="row">
-      <div class="col-12 pt-3">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags|default:'info' }} mb-0">{{ message }}</div>
-        {% endfor %}
+  <main class="route-shell route-page">
+    <section class="route-hero">
+      <div>
+        <p class="route-kicker">Despacho diario</p>
+        <h1>Genera rutas más rápido y con menos motorizados.</h1>
+        <p class="route-hero-copy">Carga tu origen, agrega los puntos de entrega y usa tu historial real para encontrar direcciones con menos fricción.</p>
       </div>
-    </div>
+      <div class="route-hero-stats">
+        <div class="route-stat-card">
+          <span class="route-stat-label">Base operativa</span>
+          <strong>{{ base_location_name|default:"Aún no configurada" }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Favoritos</span>
+          <strong>{{ favorite_places|length }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Recientes</span>
+          <strong>{{ recent_places|length }}</strong>
+        </div>
+      </div>
+    </section>
+
+    {% if messages %}
+    <section class="route-alerts">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-0">{{ message }}</div>
+      {% endfor %}
+    </section>
     {% endif %}
 
-    <div class="row">
-      <div class="col-sl-12 col-md-4 col-lg-4 col-xl-4 text-light py-3">
-        <h2>Datos de Ruta</h2>
-        <form action="{% url 'RMapp:create_routes' %}" method="POST" id="FA">
+    <section class="route-workspace">
+      <div class="route-panel route-planner-panel">
+        <div class="route-panel-head">
+          <div>
+            <p class="route-panel-eyebrow">Planificador</p>
+            <h2>Datos de Ruta</h2>
+          </div>
+          {% if base_location_name %}
+          <span class="route-badge">Sesgo: {{ base_location_name }}</span>
+          {% endif %}
+        </div>
+
+        <form action="{% url 'RMapp:create_routes' %}" method="POST" id="FA" class="route-form">
           {% csrf_token %}
           <div class="mb-3 autocomplete-field">
             <label for="Origin_form" class="form-label">Origen</label>
-            <input type="text" class="form-control route-autocomplete" id="Origin_form" name="Origin_form" placeholder="Dirección de origen" autocomplete="off">
+            <input type="text" class="form-control route-input route-autocomplete" id="Origin_form" name="Origin_form" placeholder="Dirección de origen" autocomplete="off">
           </div>
 
           <div id="destinos">
             <div class="mb-3 autocomplete-field">
               <label for="Destino_form" class="form-label">Destino</label>
-              <input type="text" class="form-control route-autocomplete Destino_input" id="Destino_form" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
+              <input type="text" class="form-control route-input route-autocomplete Destino_input" id="Destino_form" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
             </div>
           </div>
 
-          <div class="d-grid gap-2">
-            <button class="btn btn-outline-secondary" type="button" id="Add-Detino-btn"><h5 class="text-light">Agregar Destino</h5></button>
-          </div>
-
-          <div class="d-grid gap-2 my-2">
-            <button class="btn btn-light" type="button" id="RM"><h5>Generate Route</h5></button>
+          <div class="route-form-actions">
+            <button class="btn route-secondary-btn" type="button" id="Add-Detino-btn">Agregar destino</button>
+            <button class="btn route-primary-btn" type="button" id="RM">Generar rutas</button>
           </div>
         </form>
       </div>
 
-      <div class="col-sl-12 col-md-8 col-lg-8 col-xl-8 bg-sec text-light py-3"></div>
-    </div>
-  </div>
+      <div class="route-sidebar">
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
+              <p class="route-panel-eyebrow">Direcciones útiles</p>
+              <h3>Favoritos</h3>
+            </div>
+          </div>
+          {% if favorite_places %}
+          <div class="route-chip-list">
+            {% for place in favorite_places %}
+            <button type="button" class="route-chip quick-place-btn" data-address="{{ place.address }}">{{ place.label|default:place.address }}</button>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="route-empty-copy">Marca destinos frecuentes como favoritos desde el admin para tener acceso rápido aquí.</p>
+          {% endif %}
+        </section>
+
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
+              <p class="route-panel-eyebrow">Memoria del negocio</p>
+              <h3>Recientes</h3>
+            </div>
+          </div>
+          {% if recent_places %}
+          <div class="route-place-list">
+            {% for place in recent_places %}
+            <button type="button" class="route-place-item quick-place-btn" data-address="{{ place.address }}">
+              <span class="route-place-title">{{ place.label|default:place.address }}</span>
+              <span class="route-place-subtitle">{{ place.address }}</span>
+            </button>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="route-empty-copy">Cuando generes rutas, aquí aparecerán tus direcciones más usadas.</p>
+          {% endif %}
+        </section>
+
+        <section class="route-panel route-info-panel">
+          <p class="route-panel-eyebrow">Flujo sugerido</p>
+          <ol class="route-info-list">
+            <li>Define un origen real de despacho.</li>
+            <li>Agrega todos los destinos del día.</li>
+            <li>Usa recientes y favoritos para acelerar la carga.</li>
+            <li>Genera y revisa la secuencia final.</li>
+          </ol>
+        </section>
+      </div>
+    </section>
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   <script>
