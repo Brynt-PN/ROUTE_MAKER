@@ -132,6 +132,11 @@ body.route-body {
     gap: 1rem;
 }
 
+.route-results-workspace {
+    grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.28fr);
+    align-items: start;
+}
+
 .route-panel {
     padding: 1.2rem;
 }
@@ -371,6 +376,11 @@ body.route-body {
     gap: 0.75rem;
 }
 
+.route-action-copy {
+    color: var(--rm-muted);
+    margin: 0 0 0.9rem;
+}
+
 .route-share-link,
 .route-share-btn {
     display: inline-flex;
@@ -395,7 +405,7 @@ body.route-body {
 
 .route-stop-item {
     display: grid;
-    grid-template-columns: 42px 1fr;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
     gap: 0.85rem;
     align-items: start;
     padding: 0.9rem 0;
@@ -425,6 +435,38 @@ body.route-body {
     font-size: 0.85rem;
 }
 
+.route-stop-copy strong {
+    display: block;
+}
+
+.route-stop-meta,
+.route-inline-note {
+    color: var(--rm-muted);
+    font-size: 0.85rem;
+    margin: 0.35rem 0 0;
+}
+
+.route-inline-note {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.95rem;
+    border: 1px dashed rgba(247, 198, 95, 0.25);
+    min-height: 52px;
+    padding: 0.75rem 0.9rem;
+    text-align: center;
+}
+
+.route-stop-actions {
+    display: flex;
+    align-items: center;
+}
+
+.route-stop-link {
+    min-height: 44px;
+    padding-inline: 1rem;
+}
+
 @media (max-width: 992px) {
     .route-hero,
     .route-workspace {
@@ -441,5 +483,13 @@ body.route-body {
 
     .route-share-actions {
         grid-template-columns: 1fr;
+    }
+
+    .route-stop-item {
+        grid-template-columns: 42px 1fr;
+    }
+
+    .route-stop-actions {
+        grid-column: 2;
     }
 }

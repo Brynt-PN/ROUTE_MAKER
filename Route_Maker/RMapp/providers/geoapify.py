@@ -40,6 +40,7 @@ class GeoapifyClient:
         limit: int = 5,
         country_bias: str = "",
         country_filter: str = "",
+        city_bias: str = "",
         proximity: tuple[float, float] | None = None,
     ) -> list[dict[str, Any]]:
         if not text.strip():
@@ -84,10 +85,17 @@ class GeoapifyClient:
             }
             for result in data.get("results", [])
         ]
-        return self._rank_autocomplete_results(text, results)
+        return self._rank_autocomplete_results(text, results, city_bias=city_bias)
 
-    def _rank_autocomplete_results(self, text: str, results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _rank_autocomplete_results(
+        self,
+        text: str,
+        results: list[dict[str, Any]],
+        *,
+        city_bias: str = "",
+    ) -> list[dict[str, Any]]:
         query = text.strip().lower()
+        preferred_city = city_bias.strip().lower()
 
         def score(result: dict[str, Any]) -> tuple[float, float, int]:
             line1 = result["address_line1"].lower()
@@ -96,7 +104,8 @@ class GeoapifyClient:
             contains = 1 if query in line1 or query in formatted else 0
             confidence = float(result.get("confidence", 0))
             preferred_type = 1 if result.get("result_type") in {"amenity", "building", "street"} else 0
-            return (starts, contains + preferred_type, confidence)
+            city_match = 1 if preferred_city and preferred_city in formatted else 0
+            return (starts, city_match, contains + preferred_type, confidence)
 
         ranked = sorted(results, key=score, reverse=True)
         return ranked

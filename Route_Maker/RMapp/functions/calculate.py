@@ -13,6 +13,9 @@ def get_coordinates_and_objects(Origen, Destinos, organization):
 #Crear el Objeto Ruta
 def create_route(origin):
     assign_quadrant_and_distance(origin)
+    max_stops_per_route = 8
+    if origin.organization and origin.organization.max_stops_per_route:
+        max_stops_per_route = origin.organization.max_stops_per_route
     #Verificamos si existen Nodos que no tienen una ruta asignada
     while origin.relational_nodos.filter(has_route = False).exists():#EXISTS() verifica que el queryset exista.
         #Obtenemos la sita de Nodos sin Ruta asignada
@@ -21,6 +24,8 @@ def create_route(origin):
         route = [origin]#Creamos la ruta y agregamos el Origen
         #Recorremos la lista de Nodos y verificamos si se agregan o no a la Ruta
         for nodo in ordered_nodes_distance:    
+            if len(route) - 1 >= max_stops_per_route:
+                break
             nodo_distance = get_nodo_distance(route[-1], nodo)
             assignmet_route = compare_distance(nodo_distance, nodo.origin_distance)
             if assignmet_route == True:

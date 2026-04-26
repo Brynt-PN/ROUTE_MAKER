@@ -120,6 +120,18 @@ def _build_share_text(display_number: int, origin_name: str, destinations: list[
     return "\n".join(lines)
 
 
+def _build_whatsapp_share_text(
+    display_number: int,
+    origin_name: str,
+    destinations: list[str],
+    google_maps_directions_url: str,
+) -> str:
+    base_text = _build_share_text(display_number, origin_name, destinations)
+    if google_maps_directions_url:
+        return f"{base_text}\n\nMapa: {google_maps_directions_url}"
+    return f"{base_text}\n\nAbre cada parada desde Route Maker para navegar tramo por tramo."
+
+
 def _build_google_maps_directions_url(origin_name: str, destinations: list[str]) -> str:
     if not destinations:
         return ""
@@ -136,17 +148,47 @@ def _build_google_maps_directions_url(origin_name: str, destinations: list[str])
     return url
 
 
+def _build_step_navigation_links(origin_name: str, destinations: list[str]) -> list[dict]:
+    previous_address = origin_name
+    step_links = []
+
+    for index, address in enumerate(destinations, start=1):
+        step_links.append(
+            {
+                "index": index,
+                "address": address,
+                "from_address": previous_address,
+                "google_maps_url": (
+                    "https://www.google.com/maps/dir/?api=1"
+                    f"&origin={quote(previous_address)}"
+                    f"&destination={quote(address)}"
+                ),
+            }
+        )
+        previous_address = address
+
+    return step_links
+
+
 @login_required
 def index(request):
     organization = request.user.organization
     favorite_places = []
     recent_places = []
     base_location_name = ""
+    base_city = ""
+    base_lat = ""
+    base_lon = ""
+    country_code = ""
 
     if organization:
         favorite_places = list(organization.saved_places.filter(is_favorite=True)[:4])
         recent_places = list(organization.saved_places.all()[:6])
         base_location_name = organization.base_location_name
+        base_city = organization.base_city
+        base_lat = organization.base_lat or ""
+        base_lon = organization.base_lon or ""
+        country_code = organization.country_code
 
     return render(
         request=request,
@@ -154,6 +196,10 @@ def index(request):
         context={
             "organization_name": organization.name if organization else "",
             "base_location_name": base_location_name,
+            "base_city": base_city,
+            "base_lat": base_lat,
+            "base_lon": base_lon,
+            "country_code": country_code,
             "favorite_places": favorite_places,
             "recent_places": recent_places,
         },
@@ -228,6 +274,7 @@ def autocomplete(request):
             query,
             country_bias=country_bias,
             country_filter=country_filter,
+            city_bias=organization.base_city if organization else "",
             proximity=proximity,
         )
     except GeoapifyError as exc:
@@ -251,7 +298,16 @@ def routes(request, id):
     destinations = route_data["Destinos"][0]
     route_entries, current_route_number = _build_route_entries(origin, route_0.id)
     share_text = _build_share_text(current_route_number, route_data["Origin"], destinations)
-    google_maps_directions_url = _build_google_maps_directions_url(route_data["Origin"], destinations)
+    step_navigation_links = _build_step_navigation_links(route_data["Origin"], destinations)
+    google_maps_directions_url = ""
+    if len(destinations) <= 10:
+        google_maps_directions_url = _build_google_maps_directions_url(route_data["Origin"], destinations)
+    whatsapp_share_text = _build_whatsapp_share_text(
+        current_route_number,
+        route_data["Origin"],
+        destinations,
+        google_maps_directions_url,
+    )
 
     return render(
         request=request,
@@ -267,6 +323,8 @@ def routes(request, id):
             "total_route_count": len(route_entries),
             "share_text": share_text,
             "share_text_urlencoded": quote(share_text),
+            "whatsapp_share_text_urlencoded": quote(whatsapp_share_text),
             "google_maps_directions_url": google_maps_directions_url,
+            "step_navigation_links": step_navigation_links,
         },
     )

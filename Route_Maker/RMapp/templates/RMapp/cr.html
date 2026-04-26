@@ -21,6 +21,7 @@
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <span class="route-org ms-lg-3">{{ organization_name }}</span>
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}">Configuración</a>
           <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
           <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}">Nueva ruta</a>
         </div>
@@ -51,7 +52,7 @@
       </div>
     </section>
 
-    <section class="route-workspace">
+    <section class="route-workspace route-results-workspace">
       <aside class="route-panel route-route-list-panel">
         <div class="route-panel-head compact">
           <div>
@@ -82,11 +83,14 @@
             </div>
             <span class="route-badge">Ruta {{ current_route_number }}</span>
           </div>
+          <p class="route-action-copy">Si la ruta completa no entra en Google Maps, abre cada entrega desde la secuencia y avanza parada por parada.</p>
           <div class="route-share-actions">
             <button type="button" class="btn route-secondary-btn route-share-btn" data-copy-text="{{ share_text|escape }}">Copiar secuencia</button>
-            <a class="btn route-secondary-btn route-share-link" href="https://wa.me/?text={{ share_text_urlencoded }}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+            <a class="btn route-secondary-btn route-share-link" href="https://wa.me/?text={{ whatsapp_share_text_urlencoded }}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
             {% if google_maps_directions_url %}
             <a class="btn route-primary-btn route-share-link" href="{{ google_maps_directions_url }}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            {% else %}
+            <span class="route-inline-note">Ruta larga: usa los accesos por parada.</span>
             {% endif %}
           </div>
         </div>
@@ -107,12 +111,16 @@
 
           {% if route_destinations %}
           <div class="route-stop-list">
-            {% for address in route_destinations %}
+            {% for stop in step_navigation_links %}
             <div class="route-stop-item">
               <span class="route-stop-index">{{ forloop.counter }}</span>
-              <div>
-                <strong>{{ address }}</strong>
+              <div class="route-stop-copy">
+                <strong>{{ stop.address }}</strong>
                 <p class="route-stop-hint">Pídelo como parada {{ forloop.counter }} de la ruta {{ current_route_number }}.</p>
+                <p class="route-stop-meta">Se abre desde {% if forloop.first %}el origen{% else %}la parada {{ forloop.counter0 }}{% endif %}.</p>
+              </div>
+              <div class="route-stop-actions">
+                <a class="btn route-secondary-btn route-stop-link" href="{{ stop.google_maps_url }}" target="_blank" rel="noopener noreferrer">Abrir en Maps</a>
               </div>
             </div>
             {% endfor %}

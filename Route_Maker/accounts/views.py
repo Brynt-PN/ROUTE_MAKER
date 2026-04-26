@@ -1,10 +1,12 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
-from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import FormView
 
-from .forms import LoginForm, RegistrationForm
+from .forms import LoginForm, OrganizationSettingsForm, RegistrationForm
 
 
 def home_redirect(request):
@@ -37,3 +39,29 @@ class UserRegisterView(FormView):
 
 class UserLogoutView(LogoutView):
     next_page = reverse_lazy("accounts:login")
+
+
+@login_required
+def organization_settings(request):
+    organization = request.user.organization
+    if organization is None:
+        messages.error(request, "Tu usuario no tiene un negocio asociado todavía.")
+        return redirect("RMapp:index")
+
+    if request.method == "POST":
+        form = OrganizationSettingsForm(request.POST, instance=organization)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "La configuración del negocio fue actualizada.")
+            return redirect("accounts:settings")
+    else:
+        form = OrganizationSettingsForm(instance=organization)
+
+    return render(
+        request,
+        "accounts/settings.html",
+        {
+            "form": form,
+            "organization_name": organization.name,
+        },
+    )

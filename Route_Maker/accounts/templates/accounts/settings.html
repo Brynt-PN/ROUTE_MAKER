@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración | Route Maker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
+</head>
+<body class="route-body">
+  <nav class="navbar navbar-expand-lg route-navbar">
+    <div class="container-fluid route-shell">
+      <a class="navbar-brand route-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <span class="route-org ms-lg-3">{{ organization_name }}</span>
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}">Despacho</a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="route-shell route-page">
+    <section class="route-hero route-hero-compact">
+      <div>
+        <p class="route-kicker">Configuración</p>
+        <h1>Base operativa del negocio</h1>
+        <p class="route-hero-copy">Define el país, ciudad, origen y límite de paradas para que el autocompletado y el cálculo diario se comporten mejor.</p>
+      </div>
+      <div class="route-hero-stats">
+        <div class="route-stat-card">
+          <span class="route-stat-label">Origen guardado</span>
+          <strong>{{ form.instance.base_location_name|default:"Sin configurar" }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Ciudad base</span>
+          <strong>{{ form.instance.base_city|default:"Sin configurar" }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label">Límite actual</span>
+          <strong>{{ form.instance.max_stops_per_route }} paradas</strong>
+        </div>
+      </div>
+    </section>
+
+    {% if messages %}
+    <section class="route-alerts">
+      {% for message in messages %}
+      <div class="alert alert-{{ message.tags|default:'info' }} mb-0">{{ message }}</div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <section class="route-workspace">
+      <div class="route-panel route-planner-panel">
+        <div class="route-panel-head">
+          <div>
+            <p class="route-panel-eyebrow">Negocio</p>
+            <h2>Ajustes de despacho</h2>
+          </div>
+          <span class="route-badge">Configuración activa</span>
+        </div>
+
+        <form method="post" class="route-form">
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="row g-3">
+            <div class="col-12">
+              {{ form.name.label_tag }}
+              {{ form.name }}
+              {% if form.name.errors %}
+              <div class="text-danger small mt-1">{{ form.name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              {{ form.country_code.label_tag }}
+              {{ form.country_code }}
+              {% if form.country_code.errors %}
+              <div class="text-danger small mt-1">{{ form.country_code.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              {{ form.base_city.label_tag }}
+              {{ form.base_city }}
+              {% if form.base_city.errors %}
+              <div class="text-danger small mt-1">{{ form.base_city.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 autocomplete-field">
+              {{ form.base_location_name.label_tag }}
+              {{ form.base_location_name }}
+              {% if form.base_location_name.errors %}
+              <div class="text-danger small mt-1">{{ form.base_location_name.errors|join:", " }}</div>
+              {% endif %}
+              <div class="form-text text-light-emphasis mt-2">Selecciona la opción sugerida para guardar también latitud y longitud.</div>
+            </div>
+
+            <div class="col-md-6">
+              {{ form.max_stops_per_route.label_tag }}
+              {{ form.max_stops_per_route }}
+              {% if form.max_stops_per_route.errors %}
+              <div class="text-danger small mt-1">{{ form.max_stops_per_route.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          {{ form.base_lat }}
+          {{ form.base_lon }}
+
+          <div class="route-form-actions">
+            <a class="btn route-secondary-btn" href="{% url 'RMapp:index' %}">Volver al despacho</a>
+            <button class="btn route-primary-btn" type="submit">Guardar configuración</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="route-sidebar">
+        <section class="route-panel route-info-panel">
+          <p class="route-panel-eyebrow">Impacto inmediato</p>
+          <ol class="route-info-list">
+            <li>El autocompletado prioriza tu país y sesga la búsqueda hacia tu base guardada.</li>
+            <li>Los destinos nuevos heredan el contexto del origen elegido durante la carga del despacho.</li>
+            <li>El límite de paradas ayuda a evitar rutas excesivamente largas con el algoritmo actual.</li>
+          </ol>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+  <script>
+    window.routeMakerConfig = {
+      autocompleteUrl: "{% url 'RMapp:autocomplete' %}"
+    };
+  </script>
+  <script src="{% static 'JS/main.js' %}"></script>
+</body>
+</html>

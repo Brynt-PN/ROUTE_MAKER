@@ -33,11 +33,52 @@ function closeMenu(input) {
     state.menu.innerHTML = "";
 }
 
+function syncLinkedFields(input, value) {
+    const latTargetId = input.dataset.syncLatTarget;
+    const lonTargetId = input.dataset.syncLonTarget;
+    const countryTargetId = input.dataset.syncCountryTarget;
+
+    if (latTargetId) {
+        const latTarget = document.getElementById(latTargetId);
+        if (latTarget) {
+            latTarget.value = value.latitude || "";
+        }
+    }
+
+    if (lonTargetId) {
+        const lonTarget = document.getElementById(lonTargetId);
+        if (lonTarget) {
+            lonTarget.value = value.longitude || "";
+        }
+    }
+
+    if (countryTargetId) {
+        const countryTarget = document.getElementById(countryTargetId);
+        if (countryTarget && value.country_code) {
+            countryTarget.value = value.country_code;
+        }
+    }
+}
+
+function clearLinkedFields(input) {
+    ["syncLatTarget", "syncLonTarget"].forEach((key) => {
+        const targetId = input.dataset[key];
+        if (!targetId) {
+            return;
+        }
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.value = "";
+        }
+    });
+}
+
 function selectSuggestion(input, value) {
     input.value = value.formatted_address;
     input.dataset.lat = value.latitude || "";
     input.dataset.lon = value.longitude || "";
     input.dataset.countryCode = value.country_code || "";
+    syncLinkedFields(input, value);
     activeInput = input;
     closeMenu(input);
 }
@@ -134,7 +175,13 @@ async function fetchSuggestions(input) {
 function bindAutocomplete(input) {
     getAutocompleteState(input);
     const debouncedFetch = debounce(() => fetchSuggestions(input), 120);
-    input.addEventListener("input", debouncedFetch);
+    input.addEventListener("input", () => {
+        input.dataset.lat = "";
+        input.dataset.lon = "";
+        input.dataset.countryCode = "";
+        clearLinkedFields(input);
+        debouncedFetch();
+    });
     input.addEventListener("focus", () => {
         activeInput = input;
         debouncedFetch();
@@ -160,28 +207,39 @@ document.addEventListener("click", (event) => {
 document.querySelectorAll(".quick-place-btn").forEach((button) => {
     button.addEventListener("click", () => {
         const targetInput = activeInput || document.getElementById("Origin_form");
+        if (!targetInput) {
+            return;
+        }
         targetInput.value = button.dataset.address || "";
         targetInput.dataset.lat = "";
         targetInput.dataset.lon = "";
         targetInput.dataset.countryCode = "";
+        clearLinkedFields(targetInput);
         targetInput.focus();
     });
 });
 
 const addDestinoBtn = document.getElementById("Add-Detino-btn");
-addDestinoBtn.addEventListener("click", () => {
-    const containerDestinos = document.getElementById("destinos");
-    const newDestino = document.createElement("div");
-    newDestino.className = "mb-3 autocomplete-field";
-    newDestino.innerHTML = `
-      <input type="text" class="form-control route-input route-autocomplete Destino_input" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
-    `;
-    containerDestinos.appendChild(newDestino);
-    bindAutocomplete(newDestino.querySelector(".Destino_input"));
-});
+if (addDestinoBtn) {
+    addDestinoBtn.addEventListener("click", () => {
+        const containerDestinos = document.getElementById("destinos");
+        if (!containerDestinos) {
+            return;
+        }
+        const newDestino = document.createElement("div");
+        newDestino.className = "mb-3 autocomplete-field";
+        newDestino.innerHTML = `
+          <input type="text" class="form-control route-input route-autocomplete Destino_input" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
+        `;
+        containerDestinos.appendChild(newDestino);
+        bindAutocomplete(newDestino.querySelector(".Destino_input"));
+    });
+}
 
 const routeMaker = document.getElementById("RM");
 const form = document.getElementById("FA");
-routeMaker.addEventListener("click", () => {
-    form.submit();
-});
+if (routeMaker && form) {
+    routeMaker.addEventListener("click", () => {
+        form.submit();
+    });
+}

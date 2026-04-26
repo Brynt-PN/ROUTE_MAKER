@@ -21,6 +21,7 @@
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <span class="route-org ms-lg-3">{{ organization_name }}</span>
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}">Configuración</a>
           <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
           <a class="nav-link route-nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER">Repositorio</a>
         </div>
@@ -41,12 +42,12 @@
           <strong>{{ base_location_name|default:"Aún no configurada" }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Favoritos</span>
-          <strong>{{ favorite_places|length }}</strong>
+          <span class="route-stat-label">Ciudad base</span>
+          <strong>{{ base_city|default:"Sin configurar" }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Recientes</span>
-          <strong>{{ recent_places|length }}</strong>
+          <span class="route-stat-label">Memoria útil</span>
+          <strong>{{ favorite_places|length }} favoritos / {{ recent_places|length }} recientes</strong>
         </div>
       </div>
     </section>
@@ -67,7 +68,7 @@
             <h2>Datos de Ruta</h2>
           </div>
           {% if base_location_name %}
-          <span class="route-badge">Sesgo: {{ base_location_name }}</span>
+          <span class="route-badge">Sesgo: {{ base_city|default:base_location_name }}</span>
           {% endif %}
         </div>
 
@@ -75,7 +76,7 @@
           {% csrf_token %}
           <div class="mb-3 autocomplete-field">
             <label for="Origin_form" class="form-label">Origen</label>
-            <input type="text" class="form-control route-input route-autocomplete" id="Origin_form" name="Origin_form" placeholder="Dirección de origen" autocomplete="off">
+            <input type="text" class="form-control route-input route-autocomplete" id="Origin_form" name="Origin_form" placeholder="Dirección de origen" autocomplete="off" value="{{ base_location_name }}" data-lat="{{ base_lat }}" data-lon="{{ base_lon }}" data-country-code="{{ country_code }}">
           </div>
 
           <div id="destinos">

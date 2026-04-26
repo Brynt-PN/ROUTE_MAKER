@@ -6,8 +6,8 @@ from .models import Organization, User
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "country_code", "base_location_name", "created_at")
-    search_fields = ("name", "slug", "base_location_name")
+    list_display = ("name", "slug", "country_code", "base_city", "base_location_name", "max_stops_per_route", "created_at")
+    search_fields = ("name", "slug", "base_city", "base_location_name")
 
 
 @admin.register(User)

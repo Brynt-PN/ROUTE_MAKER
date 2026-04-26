@@ -7,9 +7,11 @@ class Organization(models.Model):
     name = models.CharField(max_length=150)
     slug = models.SlugField(max_length=170, unique=True, blank=True)
     country_code = models.CharField(max_length=2, default="pe")
+    base_city = models.CharField(max_length=120, blank=True)
     base_location_name = models.CharField(max_length=200, blank=True)
     base_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     base_lon = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    max_stops_per_route = models.PositiveSmallIntegerField(default=8)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
