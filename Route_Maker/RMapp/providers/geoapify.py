@@ -26,8 +26,11 @@ class GeoapifyClient:
         result = results[0]
         return {
             "formatted_address": result["formatted"],
+            "address_line1": result.get("address_line1") or result["formatted"],
+            "address_line2": result.get("address_line2", ""),
             "latitude": result["lat"],
             "longitude": result["lon"],
+            "country_code": result.get("country_code", ""),
         }
 
     def autocomplete(
@@ -77,6 +80,7 @@ class GeoapifyClient:
                 "result_type": result.get("result_type", ""),
                 "match_type": result.get("rank", {}).get("match_type", ""),
                 "confidence": result.get("rank", {}).get("confidence", 0),
+                "country_code": result.get("country_code", ""),
             }
             for result in data.get("results", [])
         ]

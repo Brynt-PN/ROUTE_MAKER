@@ -34,7 +34,10 @@ function closeMenu(input) {
 }
 
 function selectSuggestion(input, value) {
-    input.value = value;
+    input.value = value.formatted_address;
+    input.dataset.lat = value.latitude || "";
+    input.dataset.lon = value.longitude || "";
+    input.dataset.countryCode = value.country_code || "";
     activeInput = input;
     closeMenu(input);
 }
@@ -58,7 +61,7 @@ function renderSuggestions(input, results) {
         `;
         button.addEventListener("mousedown", (event) => {
             event.preventDefault();
-            selectSuggestion(input, result.formatted_address);
+            selectSuggestion(input, result);
         });
         state.menu.appendChild(button);
     });
@@ -69,14 +72,28 @@ function renderSuggestions(input, results) {
 async function fetchSuggestions(input) {
     const query = input.value.trim();
     const state = getAutocompleteState(input);
+    const params = new URLSearchParams({ q: query });
 
     if (query.length < 3 || !autocompleteUrl) {
         closeMenu(input);
         return;
     }
 
-    if (autocompleteCache.has(query)) {
-        renderSuggestions(input, autocompleteCache.get(query));
+    const originInput = document.getElementById("Origin_form");
+    if (input !== originInput) {
+        if (originInput?.dataset.lat && originInput?.dataset.lon) {
+            params.set("lat", originInput.dataset.lat);
+            params.set("lon", originInput.dataset.lon);
+        }
+        if (originInput?.dataset.countryCode) {
+            params.set("country_bias", originInput.dataset.countryCode);
+            params.set("country_filter", originInput.dataset.countryCode);
+        }
+    }
+
+    const cacheKey = params.toString();
+    if (autocompleteCache.has(cacheKey)) {
+        renderSuggestions(input, autocompleteCache.get(cacheKey));
         return;
     }
 
@@ -88,7 +105,7 @@ async function fetchSuggestions(input) {
     state.activeQuery = query;
 
     try {
-        const response = await fetch(`${autocompleteUrl}?q=${encodeURIComponent(query)}`, {
+        const response = await fetch(`${autocompleteUrl}?${params.toString()}`, {
             headers: { "X-Requested-With": "XMLHttpRequest" },
             signal: state.controller.signal,
         });
@@ -104,7 +121,7 @@ async function fetchSuggestions(input) {
         }
 
         const results = payload.results || [];
-        autocompleteCache.set(query, results);
+        autocompleteCache.set(cacheKey, results);
         renderSuggestions(input, results);
     } catch (error) {
         if (error.name === "AbortError") {
@@ -144,6 +161,9 @@ document.querySelectorAll(".quick-place-btn").forEach((button) => {
     button.addEventListener("click", () => {
         const targetInput = activeInput || document.getElementById("Origin_form");
         targetInput.value = button.dataset.address || "";
+        targetInput.dataset.lat = "";
+        targetInput.dataset.lon = "";
+        targetInput.dataset.countryCode = "";
         targetInput.focus();
     });
 });

@@ -4,6 +4,7 @@ from django.db.models import F, Q
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from urllib.parse import quote
 
 from .functions.calculate import get_coordinates_and_objects
 from .models import Route, SavedPlace
@@ -21,6 +22,7 @@ def _serialize_saved_place(place: SavedPlace) -> dict:
         "source": "local",
         "is_favorite": place.is_favorite,
         "usage_count": place.usage_count,
+        "country_code": place.organization.country_code,
     }
 
 
@@ -85,6 +87,53 @@ def _update_organization_base(organization, origin) -> None:
     organization.base_lat = origin.lat
     organization.base_lon = origin.lon
     organization.save(update_fields=["base_location_name", "base_lat", "base_lon"])
+
+
+def _build_route_entries(origin, current_route_id: int) -> tuple[list[dict], int]:
+    routes = list(origin.relational_route.order_by("id"))
+    entries = []
+    current_display_number = 1
+
+    for index, route in enumerate(routes, start=1):
+        route_data = route.json_dic()
+        stop_count = len(route_data["Destinos"][0])
+        entry = {
+            "id": route.id,
+            "display_number": index,
+            "stop_count": stop_count,
+            "is_current": route.id == current_route_id,
+        }
+        if route.id == current_route_id:
+            current_display_number = index
+        entries.append(entry)
+
+    return entries, current_display_number
+
+
+def _build_share_text(display_number: int, origin_name: str, destinations: list[str]) -> str:
+    lines = [
+        f"Ruta {display_number}",
+        f"Origen: {origin_name}",
+        "Paradas:",
+    ]
+    lines.extend(f"{index}. {address}" for index, address in enumerate(destinations, start=1))
+    return "\n".join(lines)
+
+
+def _build_google_maps_directions_url(origin_name: str, destinations: list[str]) -> str:
+    if not destinations:
+        return ""
+
+    destination = destinations[-1]
+    waypoints = destinations[:-1]
+    url = (
+        "https://www.google.com/maps/dir/?api=1"
+        f"&origin={quote(origin_name)}"
+        f"&destination={quote(destination)}"
+    )
+    if waypoints:
+        url += "&waypoints=" + quote("|".join(waypoints))
+    return url
 
 
 @login_required
@@ -158,17 +207,27 @@ def autocomplete(request):
     organization = request.user.organization
     local_results = _get_local_place_suggestions(organization, query)
     proximity = None
-    country_bias = ""
+    country_bias = request.GET.get("country_bias", "").strip().lower()
+    country_filter = request.GET.get("country_filter", "").strip().lower()
 
     if organization:
-        country_bias = organization.country_code
+        country_bias = country_bias or organization.country_code
         if organization.base_lat is not None and organization.base_lon is not None:
             proximity = (float(organization.base_lon), float(organization.base_lat))
+
+    lat = request.GET.get("lat")
+    lon = request.GET.get("lon")
+    if lat and lon:
+        try:
+            proximity = (float(lon), float(lat))
+        except ValueError:
+            pass
 
     try:
         remote_results = get_geocoding_client().autocomplete(
             query,
             country_bias=country_bias,
+            country_filter=country_filter,
             proximity=proximity,
         )
     except GeoapifyError as exc:
@@ -190,6 +249,9 @@ def routes(request, id):
     origin = route_0.origin
     route_data = route_0.json_dic()
     destinations = route_data["Destinos"][0]
+    route_entries, current_route_number = _build_route_entries(origin, route_0.id)
+    share_text = _build_share_text(current_route_number, route_data["Origin"], destinations)
+    google_maps_directions_url = _build_google_maps_directions_url(route_data["Origin"], destinations)
 
     return render(
         request=request,
@@ -200,5 +262,11 @@ def routes(request, id):
             "organization_name": request.user.organization.name if request.user.organization else "",
             "route_destinations": destinations,
             "route_stop_count": len(destinations),
+            "route_entries": route_entries,
+            "current_route_number": current_route_number,
+            "total_route_count": len(route_entries),
+            "share_text": share_text,
+            "share_text_urlencoded": quote(share_text),
+            "google_maps_directions_url": google_maps_directions_url,
         },
     )
