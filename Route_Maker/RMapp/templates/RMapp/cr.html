@@ -5,25 +5,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ Origin }}</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
 </head>
 <body class="route-body">
   <nav class="navbar navbar-expand-lg route-navbar">
     <div class="container-fluid route-shell">
-      <a class="navbar-brand route-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
+      <a class="navbar-brand route-brand" href="{% url 'dashboard' %}">
+        <span class="route-brand-mark"><i class="bi bi-sign-turn-right-fill"></i></span>
+        <span>Route Maker</span>
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <span class="route-org ms-lg-3">{{ organization_name }}</span>
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}">Configuración</a>
-          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
-          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}">Nueva ruta</a>
+          <a class="nav-link route-nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}"><i class="bi bi-sliders2"></i><span>Configuración</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}"><i class="bi bi-plus-square"></i><span>Nueva ruta</span></a>
         </div>
       </div>
     </div>
@@ -38,15 +44,15 @@
       </div>
       <div class="route-hero-stats">
         <div class="route-stat-card">
-          <span class="route-stat-label">Origen</span>
+          <span class="route-stat-label"><i class="bi bi-geo-alt-fill"></i>Origen</span>
           <strong>{{ Route.json_dic.Origin }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Paradas</span>
+          <span class="route-stat-label"><i class="bi bi-flag-fill"></i>Paradas</span>
           <strong>{{ route_stop_count }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Despacho</span>
+          <span class="route-stat-label"><i class="bi bi-box-seam"></i>Despacho</span>
           <strong>{{ dispatch_batch.name|default:"Lote actual" }}</strong>
         </div>
       </div>
@@ -65,14 +71,14 @@
         <div class="route-panel-head compact">
           <div>
             <p class="route-panel-eyebrow">Rutas del mismo despacho</p>
-            <h3>Secuencia de motorizados</h3>
+            <h3><i class="bi bi-signpost-split"></i>Secuencia de motorizados</h3>
           </div>
         </div>
         {% if route_entries %}
         <div class="route-place-list route-route-list">
           {% for entry in route_entries %}
           <a href="{% url 'RMapp:routes' entry.id %}" class="route-place-item route-route-card {% if entry.is_current %}is-active{% endif %}">
-            <span class="route-place-title">Ruta {{ entry.display_number }}</span>
+            <span class="route-place-title"><i class="bi bi-sign-turn-right"></i>Ruta {{ entry.display_number }}</span>
             <span class="route-place-subtitle">{{ entry.stop_count }} parada{{ entry.stop_count|pluralize:"s" }}</span>
           </a>
           {% endfor %}
@@ -87,16 +93,16 @@
           <div class="route-detail-header">
             <div>
               <p class="route-panel-eyebrow">Acciones</p>
-              <h3>Compartir y ejecutar</h3>
+              <h3><i class="bi bi-send-check"></i>Compartir y ejecutar</h3>
             </div>
             <span class="route-badge">Ruta {{ current_route_number }}</span>
           </div>
           <p class="route-action-copy">Si la ruta completa no entra en Google Maps, abre cada entrega desde la secuencia y avanza parada por parada.</p>
           <div class="route-share-actions">
-            <button type="button" class="btn route-secondary-btn route-share-btn" data-copy-text="{{ share_text|escape }}">Copiar secuencia</button>
-            <a class="btn route-secondary-btn route-share-link" href="https://wa.me/?text={{ whatsapp_share_text_urlencoded }}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+            <button type="button" class="btn route-secondary-btn route-share-btn" data-copy-text="{{ share_text|escape }}"><i class="bi bi-copy"></i><span>Copiar</span></button>
+            <a class="btn route-secondary-btn route-share-link" href="https://wa.me/?text={{ whatsapp_share_text_urlencoded }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-whatsapp"></i><span>WhatsApp</span></a>
             {% if google_maps_directions_url %}
-            <a class="btn route-primary-btn route-share-link" href="{{ google_maps_directions_url }}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a>
+            <a class="btn route-primary-btn route-share-link" href="{{ google_maps_directions_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-map"></i><span>Google Maps</span></a>
             {% else %}
             <span class="route-inline-note">Ruta larga: usa los accesos por parada.</span>
             {% endif %}
@@ -105,7 +111,7 @@
 
         <div class="route-detail-card">
           <p class="route-panel-eyebrow">Origen</p>
-          <h3>{{ Route.json_dic.Origin }}</h3>
+          <h3><i class="bi bi-compass"></i>{{ Route.json_dic.Origin }}</h3>
           {% if dispatch_batch %}
           <p class="route-stop-meta">Despacho con {{ dispatch_batch.total_stops }} paradas totales y {{ total_route_count }} rutas generadas.</p>
           {% endif %}
@@ -115,7 +121,7 @@
           <div class="route-detail-header">
             <div>
               <p class="route-panel-eyebrow">Secuencia</p>
-              <h3>Paradas del despacho</h3>
+              <h3><i class="bi bi-list-ol"></i>Paradas del despacho</h3>
             </div>
             <span class="route-badge">{{ route_stop_count }} destino{{ route_stop_count|pluralize:"s" }}</span>
           </div>
@@ -131,15 +137,24 @@
                 <p class="route-stop-meta">Se abre desde {% if forloop.first %}el origen{% else %}la parada {{ forloop.counter0 }}{% endif %}.</p>
               </div>
               <div class="route-stop-actions">
-                <a class="btn route-secondary-btn route-stop-link" href="{{ stop.google_maps_url }}" target="_blank" rel="noopener noreferrer">Abrir en Maps</a>
+                <a class="btn route-secondary-btn route-stop-link" href="{{ stop.google_maps_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-geo-alt"></i><span>Maps</span></a>
                 {% if stop.stop_id %}
+                <form method="post" action="{% url 'RMapp:reorder_stop' Route.id stop.stop_id %}" class="route-stop-move-form">
+                  {% csrf_token %}
+                  {% if stop.can_move_up %}
+                  <button type="submit" name="direction" value="up" class="btn route-secondary-btn route-stop-link"><i class="bi bi-arrow-up-circle"></i><span>Subir</span></button>
+                  {% endif %}
+                  {% if stop.can_move_down %}
+                  <button type="submit" name="direction" value="down" class="btn route-secondary-btn route-stop-link"><i class="bi bi-arrow-down-circle"></i><span>Bajar</span></button>
+                  {% endif %}
+                </form>
                 <form method="post" action="{% url 'RMapp:move_stop' Route.id stop.stop_id %}" class="route-stop-move-form">
                   {% csrf_token %}
                   {% if stop.can_move_previous %}
-                  <button type="submit" name="direction" value="previous" class="btn route-secondary-btn route-stop-link">Ruta anterior</button>
+                  <button type="submit" name="direction" value="previous" class="btn route-secondary-btn route-stop-link"><i class="bi bi-arrow-left-circle"></i><span>Anterior</span></button>
                   {% endif %}
                   {% if stop.can_move_next %}
-                  <button type="submit" name="direction" value="next" class="btn route-secondary-btn route-stop-link">Ruta siguiente</button>
+                  <button type="submit" name="direction" value="next" class="btn route-secondary-btn route-stop-link"><i class="bi bi-arrow-right-circle"></i><span>Siguiente</span></button>
                   {% endif %}
                 </form>
                 {% endif %}
@@ -158,13 +173,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   <script>
     document.querySelectorAll('.route-share-btn').forEach((button) => {
+      const originalHtml = button.innerHTML;
       button.addEventListener('click', async () => {
         const text = button.dataset.copyText || '';
         if (!text) return;
         await navigator.clipboard.writeText(text);
-        button.textContent = 'Copiado';
+        button.innerHTML = '<i class="bi bi-check2"></i><span>Copiado</span>';
         setTimeout(() => {
-          button.textContent = 'Copiar secuencia';
+          button.innerHTML = originalHtml;
         }, 1500);
       });
     });

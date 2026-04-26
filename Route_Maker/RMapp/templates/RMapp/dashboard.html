@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Route Maker</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
+</head>
+<body class="route-body">
+  <nav class="navbar navbar-expand-lg route-navbar">
+    <div class="container-fluid route-shell">
+      <a class="navbar-brand route-brand" href="{% url 'dashboard' %}">
+        <span class="route-brand-mark"><i class="bi bi-sign-turn-right-fill"></i></span>
+        <span>Route Maker</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDashboard" aria-controls="navbarNavDashboard" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavDashboard">
+        <span class="route-org ms-lg-3">{{ organization_name }}</span>
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}"><i class="bi bi-plus-square"></i><span>Nuevo despacho</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}"><i class="bi bi-sliders2"></i><span>Configuración</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="route-shell route-page">
+    <section class="route-hero route-hero-compact">
+      <div>
+        <p class="route-kicker">Dashboard</p>
+        <h1>Controla despachos, rutas y ejecución desde una sola vista.</h1>
+        <p class="route-hero-copy">Usa este panel como entrada principal del negocio: crea despachos, reabre los recientes y entra al planner cuando necesites una corrida nueva.</p>
+      </div>
+      <div class="route-hero-stats">
+        <div class="route-stat-card">
+          <span class="route-stat-label"><i class="bi bi-box-seam"></i>Despachos</span>
+          <strong>{{ stats.dispatch_count }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label"><i class="bi bi-signpost-split"></i>Rutas</span>
+          <strong>{{ stats.route_count }}</strong>
+        </div>
+        <div class="route-stat-card">
+          <span class="route-stat-label"><i class="bi bi-flag-fill"></i>Paradas</span>
+          <strong>{{ stats.stop_count }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="route-workspace">
+      <div class="route-panel route-planner-panel">
+        <div class="route-panel-head">
+          <div>
+            <p class="route-panel-eyebrow">Accesos rápidos</p>
+            <h2><i class="bi bi-grid-1x2"></i>Todo lo importante</h2>
+          </div>
+        </div>
+        <div class="route-step-grid">
+          <a href="{% url 'RMapp:index' %}" class="route-place-item route-route-card route-dashboard-card">
+            <span class="route-place-title"><i class="bi bi-diagram-3"></i>Nuevo despacho</span>
+            <span class="route-place-subtitle">Carga el origen, agrega destinos y genera rutas operativas.</span>
+          </a>
+          <a href="{% url 'accounts:settings' %}" class="route-place-item route-route-card route-dashboard-card">
+            <span class="route-place-title"><i class="bi bi-sliders2"></i>Configuración</span>
+            <span class="route-place-subtitle">Ajusta país, ciudad, base operativa y máximo de paradas.</span>
+          </a>
+          <a href="{% url 'landing' %}" class="route-place-item route-route-card route-dashboard-card">
+            <span class="route-place-title"><i class="bi bi-megaphone"></i>Landing pública</span>
+            <span class="route-place-subtitle">Revisa la página informativa y los CTA del producto.</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="route-sidebar">
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
+              <p class="route-panel-eyebrow">Últimos despachos</p>
+              <h3><i class="bi bi-box-seam"></i>Reabre rápido</h3>
+            </div>
+          </div>
+          {% if recent_batch_entries %}
+          <div class="route-place-list">
+            {% for batch in recent_batch_entries %}
+            {% if batch.first_route_id %}
+            <a href="{% url 'RMapp:routes' batch.first_route_id %}" class="route-place-item route-route-card">
+              <span class="route-place-title"><i class="bi bi-arrow-repeat"></i>{{ batch.name }}</span>
+              <span class="route-place-subtitle">{{ batch.total_stops }} paradas • {{ batch.status }}</span>
+            </a>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="route-empty-copy">Todavía no tienes despachos generados en este negocio.</p>
+          {% endif %}
+        </section>
+
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
+              <p class="route-panel-eyebrow">Base operativa</p>
+              <h3><i class="bi bi-shop-window"></i>Contexto actual</h3>
+            </div>
+          </div>
+          <div class="route-place-list">
+            <div class="route-place-item route-route-card">
+              <span class="route-place-title"><i class="bi bi-geo-alt-fill"></i>Origen base</span>
+              <span class="route-place-subtitle">{{ base_location_name|default:"Aún no configurado" }}</span>
+            </div>
+            <div class="route-place-item route-route-card">
+              <span class="route-place-title"><i class="bi bi-buildings"></i>Ciudad</span>
+              <span class="route-place-subtitle">{{ base_city|default:"Sin configurar" }}</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="route-panel route-info-panel">
+          <p class="route-panel-eyebrow"><i class="bi bi-lightning-charge"></i>Recomendado</p>
+          <ol class="route-info-list">
+            <li>Define la base del negocio antes del primer despacho del día.</li>
+            <li>Genera el lote completo y corrige solo las excepciones manualmente.</li>
+            <li>Reabre los despachos recientes cuando necesites revisar una ejecución.</li>
+          </ol>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Route Maker | Despachos Más Inteligentes</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
+</head>
+<body class="route-body route-landing-page">
+  <nav class="navbar navbar-expand-lg route-navbar route-landing-navbar">
+    <div class="container-fluid route-shell">
+      <a class="navbar-brand route-brand" href="{% url 'landing' %}">
+        <span class="route-brand-mark"><i class="bi bi-sign-turn-right-fill"></i></span>
+        <span>Route Maker</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavLanding" aria-controls="navbarNavLanding" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNavLanding">
+        <div class="navbar-nav ms-lg-4 gap-lg-1">
+          <a class="nav-link route-nav-link" href="#beneficios"><i class="bi bi-stars"></i><span>Beneficios</span></a>
+          <a class="nav-link route-nav-link" href="#como-funciona"><i class="bi bi-diagram-3"></i><span>Cómo funciona</span></a>
+          <a class="nav-link route-nav-link" href="#producto"><i class="bi bi-window-stack"></i><span>Producto</span></a>
+        </div>
+        <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          {% if is_authenticated %}
+          <a class="nav-link route-nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'RMapp:index' %}"><i class="bi bi-plus-square"></i><span>Nuevo despacho</span></a>
+          {% else %}
+          <a class="nav-link route-nav-link" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i><span>Iniciar sesión</span></a>
+          <a class="btn route-primary-btn route-landing-nav-cta" href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i><span>Crear cuenta</span></a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="route-landing-main">
+    <section class="route-landing-hero-block">
+      <div class="route-shell route-landing-hero-grid">
+        <div class="route-landing-copy">
+          <span class="route-landing-pill"><i class="bi bi-lightning-charge-fill"></i>Despachos claros para negocios en crecimiento</span>
+          <h1>Convierte una lista caótica de entregas en rutas accionables para hoy mismo.</h1>
+          <p>Route Maker ayuda a emprendimientos con varios despachos diarios a definir cuántos motorizados necesitan, en qué orden deben salir y cómo compartir la ejecución sin improvisar por WhatsApp.</p>
+          <div class="route-landing-cta-row">
+            {% if is_authenticated %}
+            <a class="btn route-primary-btn" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i><span>Ir al dashboard</span></a>
+            <a class="btn route-secondary-btn" href="{% url 'RMapp:index' %}"><i class="bi bi-diagram-3"></i><span>Crear despacho</span></a>
+            {% else %}
+            <a class="btn route-primary-btn" href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i><span>Crear cuenta</span></a>
+            <a class="btn route-secondary-btn" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i><span>Iniciar sesión</span></a>
+            {% endif %}
+          </div>
+          <div class="route-landing-proof">
+            <span><i class="bi bi-check2-circle"></i>Historial persistente</span>
+            <span><i class="bi bi-check2-circle"></i>Rutas editables</span>
+            <span><i class="bi bi-check2-circle"></i>Links por parada</span>
+          </div>
+        </div>
+
+        <div class="route-landing-showcase">
+          <div class="route-landing-showcase-card route-landing-showcase-main">
+            <div class="route-landing-mini-bar">
+              <span class="route-landing-dot"></span>
+              <span class="route-landing-dot"></span>
+              <span class="route-landing-dot"></span>
+            </div>
+            <p class="route-panel-eyebrow">Despacho sugerido</p>
+            <h3><i class="bi bi-signpost-split"></i>3 rutas generadas</h3>
+            <div class="route-landing-metric-row">
+              <div class="route-landing-metric">
+                <span>Motorizados</span>
+                <strong>3</strong>
+              </div>
+              <div class="route-landing-metric">
+                <span>Paradas</span>
+                <strong>27</strong>
+              </div>
+              <div class="route-landing-metric">
+                <span>Base</span>
+                <strong>Lima</strong>
+              </div>
+            </div>
+            <div class="route-place-list">
+              <div class="route-place-item route-route-card is-active">
+                <span class="route-place-title"><i class="bi bi-sign-turn-right"></i>Ruta 1</span>
+                <span class="route-place-subtitle">9 paradas • Inicio 09:00</span>
+              </div>
+              <div class="route-place-item route-route-card">
+                <span class="route-place-title"><i class="bi bi-sign-turn-right"></i>Ruta 2</span>
+                <span class="route-place-subtitle">8 paradas • Inicio 09:10</span>
+              </div>
+              <div class="route-place-item route-route-card">
+                <span class="route-place-title"><i class="bi bi-sign-turn-right"></i>Ruta 3</span>
+                <span class="route-place-subtitle">10 paradas • Inicio 09:20</span>
+              </div>
+            </div>
+          </div>
+          <div class="route-landing-showcase-card route-landing-showcase-side">
+            <p class="route-panel-eyebrow">Entrega clara</p>
+            <h3><i class="bi bi-send-check"></i>Comparte la ejecución</h3>
+            <p class="route-empty-copy">Envía la secuencia por WhatsApp o abre Maps por tramo sin forzar una ruta gigante en un solo enlace.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="beneficios" class="route-landing-section">
+      <div class="route-shell">
+        <div class="route-landing-section-head">
+          <p class="route-kicker">Beneficios</p>
+          <h2>Menos improvisación, más control operativo.</h2>
+          <p class="route-hero-copy">La plataforma está pensada para negocios que hoy organizan entregas manualmente y necesitan una transición práctica a un flujo más ordenado.</p>
+        </div>
+        <div class="route-landing-feature-grid">
+          <article class="route-landing-feature-card">
+            <div class="route-brand-mark"><i class="bi bi-people-fill"></i></div>
+            <h3>Usa solo los motorizados necesarios</h3>
+            <p>No mandes un viaje por pedido si varias entregas pueden salir agrupadas desde la misma base.</p>
+          </article>
+          <article class="route-landing-feature-card">
+            <div class="route-brand-mark"><i class="bi bi-arrow-repeat"></i></div>
+            <h3>Corrige sin recalcular todo</h3>
+            <p>Mueve paradas entre rutas o cambia el orden manualmente cuando la realidad operativa lo exija.</p>
+          </article>
+          <article class="route-landing-feature-card">
+            <div class="route-brand-mark"><i class="bi bi-clock-history"></i></div>
+            <h3>Gana tiempo en la carga diaria</h3>
+            <p>Tu negocio recuerda direcciones, favoritos y despachos recientes para acelerar las siguientes corridas.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="como-funciona" class="route-landing-section route-landing-section-alt">
+      <div class="route-shell">
+        <div class="route-landing-section-head">
+          <p class="route-kicker">Cómo funciona</p>
+          <h2>Del lote del día a la ruta del repartidor.</h2>
+        </div>
+        <div class="route-step-grid">
+          <article class="route-step-card">
+            <span class="route-stop-index">1</span>
+            <div>
+              <strong>Registra origen y destinos</strong>
+              <p class="route-empty-copy">El negocio define su base y agrega todas las entregas del turno en una sola carga.</p>
+            </div>
+          </article>
+          <article class="route-step-card">
+            <span class="route-stop-index">2</span>
+            <div>
+              <strong>Genera y revisa rutas</strong>
+              <p class="route-empty-copy">El sistema propone agrupaciones y secuencias, pero tú mantienes control manual cuando lo necesitas.</p>
+            </div>
+          </article>
+          <article class="route-step-card">
+            <span class="route-stop-index">3</span>
+            <div>
+              <strong>Comparte la ejecución</strong>
+              <p class="route-empty-copy">Cada ruta se puede abrir, compartir y seguir por parada para evitar ambigüedades en el reparto.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="producto" class="route-landing-section">
+      <div class="route-shell route-landing-product-grid">
+        <section class="route-panel route-info-panel">
+          <p class="route-panel-eyebrow"><i class="bi bi-lightning-charge"></i>Ideal para</p>
+          <ul class="route-info-list">
+            <li>Tiendas con varias entregas diarias desde un solo origen.</li>
+            <li>Negocios que coordinan motorizados por pedido o por bloques.</li>
+            <li>Equipos que necesitan claridad para compartir la ejecución.</li>
+          </ul>
+        </section>
+
+        <section class="route-panel">
+          <div class="route-panel-head compact">
+            <div>
+              <p class="route-panel-eyebrow">CTA final</p>
+              <h3><i class="bi bi-rocket-takeoff"></i>Empieza a ordenar tus despachos</h3>
+            </div>
+          </div>
+          <p class="route-empty-copy">Si hoy coordinas entregas con listas sueltas y memoria, este es el punto de partida para tener un proceso repetible y fácil de compartir con tu equipo.</p>
+          <div class="route-form-actions route-landing-actions route-landing-actions-compact">
+            {% if is_authenticated %}
+            <a class="btn route-primary-btn" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i><span>Ir al dashboard</span></a>
+            <a class="btn route-secondary-btn" href="{% url 'RMapp:index' %}"><i class="bi bi-diagram-3"></i><span>Nuevo despacho</span></a>
+            {% else %}
+            <a class="btn route-primary-btn" href="{% url 'accounts:register' %}"><i class="bi bi-person-plus"></i><span>Crear cuenta</span></a>
+            <a class="btn route-secondary-btn" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right"></i><span>Iniciar sesión</span></a>
+            {% endif %}
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+</body>
+</html>

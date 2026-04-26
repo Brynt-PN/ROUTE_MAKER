@@ -5,25 +5,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Route Maker</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
 </head>
 <body class="route-body">
   <nav class="navbar navbar-expand-lg route-navbar">
     <div class="container-fluid route-shell">
-      <a class="navbar-brand route-brand" href="{% url 'RMapp:index' %}">Route Maker</a>
+      <a class="navbar-brand route-brand" href="{% url 'dashboard' %}">
+        <span class="route-brand-mark"><i class="bi bi-sign-turn-right-fill"></i></span>
+        <span>Route Maker</span>
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <span class="route-org ms-lg-3">{{ organization_name }}</span>
         <div class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}">Configuración</a>
-          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}">Cerrar sesión</a>
-          <a class="nav-link route-nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER">Repositorio</a>
+          <a class="nav-link route-nav-link" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:settings' %}"><i class="bi bi-sliders2"></i><span>Configuración</span></a>
+          <a class="nav-link route-nav-link" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span></a>
+          <a class="nav-link route-nav-link" href="https://github.com/Brynt-PN/ROUTE_MAKER"><i class="bi bi-github"></i><span>Repositorio</span></a>
         </div>
       </div>
     </div>
@@ -38,15 +44,15 @@
       </div>
       <div class="route-hero-stats">
         <div class="route-stat-card">
-          <span class="route-stat-label">Base operativa</span>
+          <span class="route-stat-label"><i class="bi bi-shop-window"></i>Base operativa</span>
           <strong>{{ base_location_name|default:"Aún no configurada" }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Ciudad base</span>
+          <span class="route-stat-label"><i class="bi bi-buildings"></i>Ciudad base</span>
           <strong>{{ base_city|default:"Sin configurar" }}</strong>
         </div>
         <div class="route-stat-card">
-          <span class="route-stat-label">Memoria útil</span>
+          <span class="route-stat-label"><i class="bi bi-stars"></i>Memoria útil</span>
           <strong>{{ favorite_places|length }} favoritos / {{ recent_places|length }} recientes</strong>
         </div>
       </div>
@@ -65,7 +71,7 @@
         <div class="route-panel-head">
           <div>
             <p class="route-panel-eyebrow">Planificador</p>
-            <h2>Datos de Ruta</h2>
+            <h2><i class="bi bi-diagram-3"></i>Datos de Ruta</h2>
           </div>
           {% if base_location_name %}
           <span class="route-badge">Sesgo: {{ base_city|default:base_location_name }}</span>
@@ -75,20 +81,20 @@
         <form action="{% url 'RMapp:create_routes' %}" method="POST" id="FA" class="route-form">
           {% csrf_token %}
           <div class="mb-3 autocomplete-field">
-            <label for="Origin_form" class="form-label">Origen</label>
+            <label for="Origin_form" class="form-label"><i class="bi bi-geo-alt-fill"></i>Origen</label>
             <input type="text" class="form-control route-input route-autocomplete" id="Origin_form" name="Origin_form" placeholder="Dirección de origen" autocomplete="off" value="{{ base_location_name }}" data-lat="{{ base_lat }}" data-lon="{{ base_lon }}" data-country-code="{{ country_code }}">
           </div>
 
           <div id="destinos">
             <div class="mb-3 autocomplete-field">
-              <label for="Destino_form" class="form-label">Destino</label>
+              <label for="Destino_form" class="form-label"><i class="bi bi-flag-fill"></i>Destino</label>
               <input type="text" class="form-control route-input route-autocomplete Destino_input" id="Destino_form" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
             </div>
           </div>
 
           <div class="route-form-actions">
-            <button class="btn route-secondary-btn" type="button" id="Add-Detino-btn">Agregar destino</button>
-            <button class="btn route-primary-btn" type="button" id="RM">Generar rutas</button>
+            <button class="btn route-secondary-btn" type="button" id="Add-Detino-btn"><i class="bi bi-plus-circle"></i><span>Agregar destino</span></button>
+            <button class="btn route-primary-btn" type="button" id="RM"><i class="bi bi-diagram-3"></i><span>Generar rutas</span></button>
           </div>
         </form>
       </div>
@@ -98,7 +104,7 @@
           <div class="route-panel-head compact">
             <div>
               <p class="route-panel-eyebrow">Historial</p>
-              <h3>Despachos recientes</h3>
+              <h3><i class="bi bi-box-seam"></i>Despachos recientes</h3>
             </div>
           </div>
           {% if recent_batch_entries %}
@@ -106,12 +112,12 @@
             {% for batch in recent_batch_entries %}
             {% if batch.first_route_id %}
             <a href="{% url 'RMapp:routes' batch.first_route_id %}" class="route-place-item route-route-card">
-              <span class="route-place-title">{{ batch.name }}</span>
+              <span class="route-place-title"><i class="bi bi-box-seam"></i>{{ batch.name }}</span>
               <span class="route-place-subtitle">{{ batch.total_stops }} paradas • {{ batch.status }}</span>
             </a>
             {% else %}
             <div class="route-place-item route-route-card">
-              <span class="route-place-title">{{ batch.name }}</span>
+              <span class="route-place-title"><i class="bi bi-box-seam"></i>{{ batch.name }}</span>
               <span class="route-place-subtitle">{{ batch.total_stops }} paradas • {{ batch.status }}</span>
             </div>
             {% endif %}
@@ -126,13 +132,13 @@
           <div class="route-panel-head compact">
             <div>
               <p class="route-panel-eyebrow">Direcciones útiles</p>
-              <h3>Favoritos</h3>
+              <h3><i class="bi bi-star-fill"></i>Favoritos</h3>
             </div>
           </div>
           {% if favorite_places %}
           <div class="route-chip-list">
             {% for place in favorite_places %}
-            <button type="button" class="route-chip quick-place-btn" data-address="{{ place.address }}">{{ place.label|default:place.address }}</button>
+            <button type="button" class="route-chip quick-place-btn" data-address="{{ place.address }}"><i class="bi bi-star-fill"></i><span>{{ place.label|default:place.address }}</span></button>
             {% endfor %}
           </div>
           {% else %}
@@ -144,14 +150,14 @@
           <div class="route-panel-head compact">
             <div>
               <p class="route-panel-eyebrow">Memoria del negocio</p>
-              <h3>Recientes</h3>
+              <h3><i class="bi bi-clock-history"></i>Recientes</h3>
             </div>
           </div>
           {% if recent_places %}
           <div class="route-place-list">
             {% for place in recent_places %}
             <button type="button" class="route-place-item quick-place-btn" data-address="{{ place.address }}">
-              <span class="route-place-title">{{ place.label|default:place.address }}</span>
+              <span class="route-place-title"><i class="bi bi-clock-history"></i>{{ place.label|default:place.address }}</span>
               <span class="route-place-subtitle">{{ place.address }}</span>
             </button>
             {% endfor %}

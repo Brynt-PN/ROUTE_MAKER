@@ -1,75 +1,115 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create account | Route Maker</title>
+  <title>Crear cuenta | Route Maker</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/favicon.svg' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'CSS/styles.css' %}">
 </head>
-<body class="bg-dark text-light">
-  <main class="container py-5">
-    <div class="row justify-content-center">
-      <div class="col-12 col-lg-7">
-        <div class="card bg-secondary-subtle border-0 shadow-lg">
-          <div class="card-body p-4 p-lg-5">
-            <h1 class="h3 text-dark mb-3">Crea tu cuenta</h1>
-            <p class="text-secondary mb-4">Registra tu negocio y empieza a planificar despachos desde una sola pantalla.</p>
-            <form method="post">
-              {% csrf_token %}
-              {% if form.non_field_errors %}
-              <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-              {% endif %}
-              <div class="row">
-                <div class="col-12 mb-3">
-                  {{ form.organization_name.label_tag }}
-                  {{ form.organization_name }}
-                  {% if form.organization_name.errors %}
-                  <div class="text-danger small mt-1">{{ form.organization_name.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                  {{ form.first_name.label_tag }}
-                  {{ form.first_name }}
-                  {% if form.first_name.errors %}
-                  <div class="text-danger small mt-1">{{ form.first_name.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                  {{ form.last_name.label_tag }}
-                  {{ form.last_name }}
-                  {% if form.last_name.errors %}
-                  <div class="text-danger small mt-1">{{ form.last_name.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-12 mb-3">
-                  {{ form.email.label_tag }}
-                  {{ form.email }}
-                  {% if form.email.errors %}
-                  <div class="text-danger small mt-1">{{ form.email.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-md-6 mb-3">
-                  {{ form.password1.label_tag }}
-                  {{ form.password1 }}
-                  {% if form.password1.errors %}
-                  <div class="text-danger small mt-1">{{ form.password1.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-                <div class="col-md-6 mb-4">
-                  {{ form.password2.label_tag }}
-                  {{ form.password2 }}
-                  {% if form.password2.errors %}
-                  <div class="text-danger small mt-1">{{ form.password2.errors|join:", " }}</div>
-                  {% endif %}
-                </div>
-              </div>
-              <button class="btn btn-dark w-100" type="submit">Crear cuenta</button>
-            </form>
-            <p class="text-secondary mt-4 mb-0">¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión</a></p>
+<body class="route-body route-auth-body">
+  <main class="route-auth-shell">
+    <div class="route-auth-topbar">
+      <a class="route-auth-backlink" href="{% url 'landing' %}">
+        <i class="bi bi-arrow-left-circle"></i>
+        <span>Volver al inicio</span>
+      </a>
+    </div>
+
+    <section class="route-auth-card route-auth-card-register">
+      <div class="route-auth-content">
+        <div class="route-auth-copy">
+          <span class="route-landing-pill"><i class="bi bi-stars"></i>Alta de negocio</span>
+          <h1><i class="bi bi-person-plus-fill"></i><span>Crea tu espacio operativo</span></h1>
+          <p>Registra tu negocio y deja lista la base para guardar clientes, generar rutas y compartir instrucciones claras con cada repartidor.</p>
+          <div class="route-auth-highlights">
+            <span><i class="bi bi-check2-circle"></i>Una organizacion por negocio</span>
+            <span><i class="bi bi-check2-circle"></i>Origen base y contexto por ciudad</span>
+            <span><i class="bi bi-check2-circle"></i>Flujo listo para varios despachos</span>
           </div>
         </div>
+
+        <div class="route-auth-form-panel">
+          <div class="route-auth-panel-head">
+            <p class="route-panel-eyebrow">Registro</p>
+            <h2><i class="bi bi-building-add"></i><span>Crear cuenta</span></h2>
+            <p>Empieza con los datos minimos del negocio y del responsable de despacho.</p>
+          </div>
+
+          <form method="post" class="route-auth-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger route-auth-alert">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="route-auth-field">
+              {{ form.organization_name.label_tag }}
+              {{ form.organization_name }}
+              {% if form.organization_name.errors %}
+              <div class="text-danger small mt-2">{{ form.organization_name.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="route-auth-grid route-auth-grid-two">
+              <div class="route-auth-field">
+                {{ form.first_name.label_tag }}
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                <div class="text-danger small mt-2">{{ form.first_name.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+              <div class="route-auth-field">
+                {{ form.last_name.label_tag }}
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                <div class="text-danger small mt-2">{{ form.last_name.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="route-auth-field">
+              {{ form.email.label_tag }}
+              {{ form.email }}
+              {% if form.email.errors %}
+              <div class="text-danger small mt-2">{{ form.email.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+
+            <div class="route-auth-grid route-auth-grid-two">
+              <div class="route-auth-field">
+                {{ form.password1.label_tag }}
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <div class="text-danger small mt-2">{{ form.password1.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+
+              <div class="route-auth-field">
+                {{ form.password2.label_tag }}
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <div class="text-danger small mt-2">{{ form.password2.errors|join:", " }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <button class="btn route-primary-btn route-auth-submit" type="submit">
+              <i class="bi bi-check2-circle"></i>
+              <span>Crear cuenta</span>
+            </button>
+          </form>
+
+          <p class="route-auth-footer">Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesion</a></p>
+        </div>
       </div>
-    </div>
+    </section>
   </main>
 </body>
 </html>

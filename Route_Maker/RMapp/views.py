@@ -73,6 +73,45 @@ def _build_recent_batch_entries(organization, limit: int = 4) -> list[dict]:
     return entries
 
 
+def _build_dashboard_context(organization) -> dict:
+    favorite_places = []
+    recent_places = []
+    recent_batch_entries = []
+    stats = {
+        "dispatch_count": 0,
+        "route_count": 0,
+        "stop_count": 0,
+    }
+
+    if organization:
+        favorite_places = list(organization.saved_places.filter(is_favorite=True)[:4])
+        recent_places = list(organization.saved_places.all()[:6])
+        recent_batch_entries = _build_recent_batch_entries(organization)
+        batch_qs = organization.dispatch_batches.all()
+        stats = {
+            "dispatch_count": batch_qs.count(),
+            "route_count": Route.objects.filter(origin__organization=organization).count(),
+            "stop_count": sum(batch.total_stops for batch in batch_qs),
+        }
+
+    return {
+        "favorite_places": favorite_places,
+        "recent_places": recent_places,
+        "recent_batch_entries": recent_batch_entries,
+        "stats": stats,
+    }
+
+
+def landing(request):
+    return render(
+        request,
+        "RMapp/landing.html",
+        {
+            "is_authenticated": request.user.is_authenticated,
+        },
+    )
+
+
 def _remember_place(organization, address: str, lat, lon, place_kind: str) -> None:
     if not organization:
         return
@@ -239,42 +278,69 @@ def _rebuild_origin_routes(origin) -> dict[int, Route]:
     return routes_by_sequence
 
 
+def _get_editable_route(request, route_id: int) -> Route:
+    route = get_object_or_404(
+        Route.objects.select_related("origin", "origin__dispatch_batch"),
+        pk=route_id,
+        origin__organization=request.user.organization,
+    )
+    return route
+
+
+def _get_route_stop(route: Route, stop_id: int) -> DispatchStop:
+    return get_object_or_404(
+        DispatchStop,
+        pk=stop_id,
+        batch=route.origin.dispatch_batch,
+        route=route,
+    )
+
+
+@login_required
+def dashboard(request):
+    organization = request.user.organization
+    context = _build_dashboard_context(organization)
+    context.update(
+        {
+            "organization_name": organization.name if organization else "",
+            "base_location_name": organization.base_location_name if organization else "",
+            "base_city": organization.base_city if organization else "",
+        }
+    )
+    return render(request, "RMapp/dashboard.html", context)
+
+
 @login_required
 def index(request):
     organization = request.user.organization
-    favorite_places = []
-    recent_places = []
-    recent_batch_entries = []
     base_location_name = ""
     base_city = ""
     base_lat = ""
     base_lon = ""
     country_code = ""
+    context = _build_dashboard_context(organization)
 
     if organization:
-        favorite_places = list(organization.saved_places.filter(is_favorite=True)[:4])
-        recent_places = list(organization.saved_places.all()[:6])
         base_location_name = organization.base_location_name
         base_city = organization.base_city
         base_lat = organization.base_lat or ""
         base_lon = organization.base_lon or ""
         country_code = organization.country_code
-        recent_batch_entries = _build_recent_batch_entries(organization)
 
-    return render(
-        request=request,
-        template_name="RMapp/index.html",
-        context={
+    context.update(
+        {
             "organization_name": organization.name if organization else "",
             "base_location_name": base_location_name,
             "base_city": base_city,
             "base_lat": base_lat,
             "base_lon": base_lon,
             "country_code": country_code,
-            "favorite_places": favorite_places,
-            "recent_places": recent_places,
-            "recent_batch_entries": recent_batch_entries,
-        },
+        }
+    )
+    return render(
+        request=request,
+        template_name="RMapp/index.html",
+        context=context,
     )
 
 
@@ -363,22 +429,12 @@ def move_stop(request, id: int, stop_id: int):
     if request.method != "POST":
         return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(id,)))
 
-    route = get_object_or_404(
-        Route.objects.select_related("origin", "origin__dispatch_batch"),
-        pk=id,
-        origin__organization=request.user.organization,
-    )
-    dispatch_batch = route.origin.dispatch_batch
-    if not dispatch_batch:
+    route = _get_editable_route(request, id)
+    if not route.origin.dispatch_batch:
         messages.error(request, "Esta ruta antigua todavía no pertenece a un despacho editable.")
         return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
-
-    stop = get_object_or_404(
-        DispatchStop,
-        pk=stop_id,
-        batch=dispatch_batch,
-        route=route,
-    )
+    stop = _get_route_stop(route, stop_id)
+    dispatch_batch = route.origin.dispatch_batch
     direction = request.POST.get("direction")
     if direction not in {"previous", "next"}:
         messages.error(request, "Movimiento inválido.")
@@ -419,6 +475,56 @@ def move_stop(request, id: int, stop_id: int):
 
 
 @login_required
+def reorder_stop(request, id: int, stop_id: int):
+    if request.method != "POST":
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(id,)))
+
+    route = _get_editable_route(request, id)
+    if not route.origin.dispatch_batch:
+        messages.error(request, "Esta ruta antigua todavía no pertenece a un despacho editable.")
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+    stop = _get_route_stop(route, stop_id)
+
+    direction = request.POST.get("direction")
+    if direction not in {"up", "down"}:
+        messages.error(request, "Reordenamiento inválido.")
+        return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+
+    route_number = stop.route_number or route.sequence_number
+    if direction == "up":
+        sibling = (
+            DispatchStop.objects.filter(batch=route.origin.dispatch_batch, route_number=route_number, stop_order__lt=stop.stop_order)
+            .order_by("-stop_order")
+            .first()
+        )
+        if not sibling:
+            messages.error(request, "La parada ya está al inicio de la ruta.")
+            return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+    else:
+        sibling = (
+            DispatchStop.objects.filter(batch=route.origin.dispatch_batch, route_number=route_number, stop_order__gt=stop.stop_order)
+            .order_by("stop_order")
+            .first()
+        )
+        if not sibling:
+            messages.error(request, "La parada ya está al final de la ruta.")
+            return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=(route.id,)))
+
+    with transaction.atomic():
+        stop_order = stop.stop_order
+        sibling_order = sibling.stop_order
+        stop.stop_order = sibling_order
+        sibling.stop_order = stop_order
+        stop.save(update_fields=["stop_order", "updated_at"])
+        sibling.save(update_fields=["stop_order", "updated_at"])
+        rebuilt_routes = _rebuild_origin_routes(route.origin)
+
+    updated_route = rebuilt_routes.get(route.sequence_number)
+    messages.success(request, "El orden de la ruta fue actualizado.")
+    return HttpResponseRedirect(redirect_to=reverse("RMapp:routes", args=((updated_route or route).id,)))
+
+
+@login_required
 def routes(request, id):
     route_0 = get_object_or_404(
         Route.objects.select_related("origin", "origin__dispatch_batch"),
@@ -443,8 +549,10 @@ def routes(request, id):
                 "stop_id": stop.id,
                 "can_move_previous": current_route_number > 1,
                 "can_move_next": True,
+                "can_move_up": index > 0,
+                "can_move_down": index < len(dispatch_stops) - 1,
             }
-            for stop in dispatch_stops
+            for index, stop in enumerate(dispatch_stops)
         ]
     else:
         destinations = route_data["Destinos"][0]

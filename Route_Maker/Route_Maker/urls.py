@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from accounts.views import home_redirect
+from RMapp.views import dashboard, landing
 
 urlpatterns = [
-    path('', home_redirect, name='home'),
+    path('', landing, name='landing'),
+    path('dashboard/', dashboard, name='dashboard'),
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('RMapp/', include('RMapp.urls'))
