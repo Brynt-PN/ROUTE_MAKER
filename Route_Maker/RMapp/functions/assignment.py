@@ -14,9 +14,9 @@ equals = {
 def Point_to_Origin(Origin_Point, organization):
      from ..models import Origin
      Origin_Object = Origin(
-          name = Origin_Point[0]['formatted_address'],
-          lat  = Origin_Point[0]['geometry']['location']['lat'],
-          lon  = Origin_Point[0]['geometry']['location']['lng'],
+          name = Origin_Point['formatted_address'],
+          lat  = Origin_Point['latitude'],
+          lon  = Origin_Point['longitude'],
           organization=organization,
           )
      Origin_Object.save()
@@ -25,9 +25,9 @@ def Point_to_Origin(Origin_Point, organization):
 def Points_to_Nodos(Destino_Points,Origin_Object):
      for Point in Destino_Points:
         Nodo = Origin_Object.relational_nodos.create(
-               name = Point[0]['formatted_address'],
-               lat  = Point[0]['geometry']['location']['lat'],
-               lon  = Point[0]['geometry']['location']['lng']               
+               name = Point['formatted_address'],
+               lat  = Point['latitude'],
+               lon  = Point['longitude']
           )
         Nodo.save()
 

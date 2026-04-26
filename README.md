@@ -1,7 +1,15 @@
 # ROUTE_MAKER
 ROUTE_MAKER  is a project created to simplify the logistical task of creating dispatch routes, taking into account factors such as time, distance, maximum number of points per route, etc.
 
-Create a `.env` file from `.env.example` and configure `DJANGO_SECRET_KEY` and `GOOGLE_MAPS_API_KEY` before running the project.
+Create a `.env` file from `.env.example` and configure `DJANGO_SECRET_KEY` and `GEOAPIFY_API_KEY` before running the project.
+
+Optional Geoapify autocomplete tuning:
+
+```env
+GEOAPIFY_AUTOCOMPLETE_LANG=es
+GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS=pe
+GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER=
+```
 
 ## Local development
 

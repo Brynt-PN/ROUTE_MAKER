@@ -1,32 +1,153 @@
-// Autocompletado de direcciones para el campo de entrada de origen
-const OriginForn = document.getElementById('Origin_form');
-const OriginAutocomplete = new google.maps.places.Autocomplete(OriginForn);
+const autocompleteUrl = window.routeMakerConfig?.autocompleteUrl;
+const autocompleteState = new WeakMap();
+const autocompleteCache = new Map();
 
-// Autocompletado de direcciones para los campos de entrada de destino
-const DestinoInputs = document.querySelectorAll('.Destino_input'); //Usamos la Class para obtener todos los parametros
-//de entrada de Destino
-DestinoInputs.forEach((input) =>{ //Esto es un bucle FOR que recorre la lista de entradas DESTINO para crear su automompletado
-    const DestinoAutocomplete = new google.maps.places.Autocomplete(input);
+function debounce(fn, wait) {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), wait);
+    };
+}
+
+function getAutocompleteState(input) {
+    if (autocompleteState.has(input)) {
+        return autocompleteState.get(input);
+    }
+
+    const wrapper = input.closest(".autocomplete-field");
+    const menu = document.createElement("div");
+    menu.className = "autocomplete-menu";
+    menu.hidden = true;
+    wrapper.appendChild(menu);
+
+    const state = { wrapper, menu, controller: null, activeQuery: "" };
+    autocompleteState.set(input, state);
+    return state;
+}
+
+function closeMenu(input) {
+    const state = getAutocompleteState(input);
+    state.menu.hidden = true;
+    state.menu.innerHTML = "";
+}
+
+function selectSuggestion(input, value) {
+    input.value = value;
+    closeMenu(input);
+}
+
+function renderSuggestions(input, results) {
+    const state = getAutocompleteState(input);
+    state.menu.innerHTML = "";
+
+    if (!results.length) {
+        state.menu.hidden = true;
+        return;
+    }
+
+    results.forEach((result) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "autocomplete-option";
+        button.innerHTML = `
+        <span class="autocomplete-option-title">${result.address_line1 || result.formatted_address}</span>
+        <span class="autocomplete-option-subtitle">${result.address_line2 || result.formatted_address}</span>
+        `;
+        button.addEventListener("mousedown", (event) => {
+            event.preventDefault();
+            selectSuggestion(input, result.formatted_address);
+        });
+        state.menu.appendChild(button);
+    });
+
+    state.menu.hidden = false;
+}
+
+async function fetchSuggestions(input) {
+    const query = input.value.trim();
+    const state = getAutocompleteState(input);
+    if (query.length < 3 || !autocompleteUrl) {
+        closeMenu(input);
+        return;
+    }
+
+    if (autocompleteCache.has(query)) {
+        renderSuggestions(input, autocompleteCache.get(query));
+        return;
+    }
+
+    if (state.controller) {
+        state.controller.abort();
+    }
+
+    state.controller = new AbortController();
+    state.activeQuery = query;
+
+    try {
+        const response = await fetch(`${autocompleteUrl}?q=${encodeURIComponent(query)}`, {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            signal: state.controller.signal,
+        });
+
+        if (!response.ok) {
+            closeMenu(input);
+            return;
+        }
+
+        const payload = await response.json();
+        if (state.activeQuery !== query) {
+            return;
+        }
+
+        const results = payload.results || [];
+        autocompleteCache.set(query, results);
+        renderSuggestions(input, results);
+    } catch (error) {
+        if (error.name === "AbortError") {
+            return;
+        }
+        closeMenu(input);
+    }
+}
+
+function bindAutocomplete(input) {
+    getAutocompleteState(input);
+    const debouncedFetch = debounce(() => fetchSuggestions(input), 120);
+    input.addEventListener("input", debouncedFetch);
+    input.addEventListener("focus", debouncedFetch);
+    input.addEventListener("blur", () => {
+        setTimeout(() => closeMenu(input), 120);
+    });
+}
+
+document.querySelectorAll(".route-autocomplete").forEach((input) => {
+    bindAutocomplete(input);
 });
 
-// Agregar nuevos campos de entrada de destino cuando se hace clic en el botón "Agregar Destino"
-const AddDestinoBtn = document.getElementById('Add-Detino-btn'); //Obtenemos el boton de Agregar destino
-AddDestinoBtn.addEventListener('click',()=>{ //Agregamos una funcionalidad al dar Click
-    const ContainerDestinos = document.getElementById('destinos'); //Obtenemos el DIV donde estan almacenados todos los DIV de inputs Destinos
-    const NewDestino = document.createElement('div');//Creamos un nuevo DIV de input Destino
-    NewDestino.classList.add("mb-3");//Agregamos la Class al Div que creamos
-    NewDestino.innerHTML = `
-    <input type="text" class="form-control Destino_input" id="Destino_form" name="Destino_form" placeholder="Dirección de Destino">
-    `; //Aqui agregamos el contenido dentro del DIV (Nuestro imput)
-    ContainerDestinos.appendChild(NewDestino);//Agregamos el nuevo DIV creado al DIV contenedor de los inputs Destino
-    
-    const NewDestinoAutocomplete = new google.maps.places.Autocomplete(NewDestino.querySelector('.Destino_input'));
-
+document.addEventListener("click", (event) => {
+    document.querySelectorAll(".route-autocomplete").forEach((input) => {
+        const state = getAutocompleteState(input);
+        if (!state.wrapper.contains(event.target)) {
+            closeMenu(input);
+        }
+    });
 });
 
-const Route_Maker = document.getElementById('RM');
-const Form = document.getElementById('FA');
-Route_Maker.addEventListener('click', () => {
-    Form.submit()
+const addDestinoBtn = document.getElementById("Add-Detino-btn");
+addDestinoBtn.addEventListener("click", () => {
+    const containerDestinos = document.getElementById("destinos");
+    const newDestino = document.createElement("div");
+    newDestino.className = "mb-3 autocomplete-field";
+    newDestino.innerHTML = `
+    <input type="text" class="form-control route-autocomplete Destino_input" name="Destino_form" placeholder="Dirección de destino" autocomplete="off">
+    `;
+    containerDestinos.appendChild(newDestino);
+    bindAutocomplete(newDestino.querySelector(".Destino_input"));
 });
 
+const routeMaker = document.getElementById("RM");
+const form = document.getElementById("FA");
+routeMaker.addEventListener("click", () => {
+    form.submit();
+});
