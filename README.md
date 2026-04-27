@@ -24,7 +24,26 @@ python Route_Maker\manage.py migrate
 python Route_Maker\manage.py runserver
 ```
 
-The project uses SQLite by default. If later you want to switch to PostgreSQL, configure these environment variables in `.env`:
+## Local pre-deploy checklist
+
+To leave the project ready for Railway + Neon from local development:
+
+```powershell
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python Route_Maker\manage.py check
+python Route_Maker\manage.py collectstatic --noinput
+```
+
+The project now supports:
+
+- `SQLite` by default for quick local development
+- `DATABASE_URL` for Neon / Railway
+- classic `POSTGRES_*` variables for local PostgreSQL
+- `gunicorn` for production start
+- `WhiteNoise` for static files
+
+If later you want to switch to PostgreSQL, configure either `DATABASE_URL` or these environment variables in `.env`:
 
 ```env
 POSTGRES_DB_NAME=
@@ -32,4 +51,10 @@ POSTGRES_DB_USER=
 POSTGRES_DB_PASSWORD=
 POSTGRES_DB_HOST=localhost
 POSTGRES_DB_PORT=5432
+```
+
+Example Railway start command:
+
+```text
+gunicorn Route_Maker.wsgi --chdir Route_Maker --bind 0.0.0.0:$PORT
 ```

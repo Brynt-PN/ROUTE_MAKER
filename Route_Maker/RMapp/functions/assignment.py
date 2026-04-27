@@ -48,8 +48,12 @@ def format_to_object(Origin_Point,Destino_Points, organization, dispatch_batch=N
 
 #Define el cuadrante del nodo en función al origen y lo asigna
 def compare(origin,nodo):
-    lon = origin.lon < nodo.lon
-    lat = origin.lat < nodo.lat
+    origin_lon = Decimal(origin.lon)
+    origin_lat = Decimal(origin.lat)
+    nodo_lon = Decimal(nodo.lon)
+    nodo_lat = Decimal(nodo.lat)
+    lon = origin_lon < nodo_lon
+    lat = origin_lat < nodo_lat
     nodo.quadrant = equals[(lon,lat)]
     nodo.save()
 

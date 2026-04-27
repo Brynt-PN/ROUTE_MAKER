@@ -24,11 +24,8 @@ def _node_angle(origin, nodo):
     return atan2(float(nodo.lat) - float(origin.lat), float(nodo.lon) - float(origin.lon))
 
 
-def _rotate_nodes_by_gap(origin, nodos):
-    if len(nodos) <= 1:
-        return list(nodos)
-
-    ordered = sorted(
+def _ordered_nodes_by_angle(origin, nodos):
+    return sorted(
         nodos,
         key=lambda nodo: (
             _node_angle(origin, nodo),
@@ -36,6 +33,12 @@ def _rotate_nodes_by_gap(origin, nodos):
             nodo.id,
         ),
     )
+
+
+def _best_gap_split_index(origin, ordered):
+    if len(ordered) <= 1:
+        return 0
+
     angles = [_node_angle(origin, nodo) for nodo in ordered]
     split_index = 0
     largest_gap = -1.0
@@ -49,7 +52,7 @@ def _rotate_nodes_by_gap(origin, nodos):
             largest_gap = gap
             split_index = (index + 1) % len(ordered)
 
-    return ordered[split_index:] + ordered[:split_index]
+    return split_index
 
 
 def _balanced_group_sizes(total_stops, max_stops_per_route):
@@ -57,6 +60,40 @@ def _balanced_group_sizes(total_stops, max_stops_per_route):
     base_size = total_stops // route_count
     remainder = total_stops % route_count
     return [base_size + (1 if index < remainder else 0) for index in range(route_count)]
+
+
+def _partition_by_sizes(nodes, group_sizes):
+    groups = []
+    offset = 0
+    for size in group_sizes:
+        groups.append(nodes[offset : offset + size])
+        offset += size
+    return groups
+
+
+def _iter_partition_candidates(origin, nodos, max_stops_per_route):
+    ordered = _ordered_nodes_by_angle(origin, nodos)
+    group_sizes = _balanced_group_sizes(len(ordered), max_stops_per_route)
+    yielded = set()
+
+    candidate_orders = []
+    if ordered:
+        best_gap_index = _best_gap_split_index(origin, ordered)
+        candidate_orders.append(ordered[best_gap_index:] + ordered[:best_gap_index])
+        for rotation in range(len(ordered)):
+            candidate_orders.append(ordered[rotation:] + ordered[:rotation])
+        reversed_order = list(reversed(ordered))
+        best_gap_index_reversed = _best_gap_split_index(origin, reversed_order)
+        candidate_orders.append(reversed_order[best_gap_index_reversed:] + reversed_order[:best_gap_index_reversed])
+        for rotation in range(len(reversed_order)):
+            candidate_orders.append(reversed_order[rotation:] + reversed_order[:rotation])
+
+    for candidate_order in candidate_orders:
+        signature = tuple(nodo.id for nodo in candidate_order)
+        if signature in yielded:
+            continue
+        yielded.add(signature)
+        yield _partition_by_sizes(candidate_order, group_sizes)
 
 
 def _nearest_neighbor_sequence(origin, nodos):
@@ -114,17 +151,32 @@ def _two_opt(origin, nodos):
     return best
 
 
-def _build_route_groups(origin, nodos, max_stops_per_route):
-    rotated_nodes = _rotate_nodes_by_gap(origin, nodos)
-    group_sizes = _balanced_group_sizes(len(rotated_nodes), max_stops_per_route)
-    groups = []
-    offset = 0
+def _optimize_group(origin, group):
+    return _two_opt(origin, _nearest_neighbor_sequence(origin, group))
 
-    for size in group_sizes:
-        groups.append(rotated_nodes[offset : offset + size])
-        offset += size
 
-    return groups
+def _solution_score(origin, route_groups):
+    route_costs = [_route_cost(origin, group) for group in route_groups]
+    total_cost = sum(route_costs)
+    max_cost = max(route_costs, default=0.0)
+    min_size = min((len(group) for group in route_groups), default=0)
+    max_size = max((len(group) for group in route_groups), default=0)
+    size_penalty = (max_size - min_size) * 0.5
+    return total_cost + (max_cost * 0.35) + size_penalty
+
+
+def _build_best_route_groups(origin, nodos, max_stops_per_route):
+    best_groups = []
+    best_score = None
+
+    for candidate_groups in _iter_partition_candidates(origin, nodos, max_stops_per_route):
+        optimized_groups = [_optimize_group(origin, group) for group in candidate_groups if group]
+        score = _solution_score(origin, optimized_groups)
+        if best_score is None or score < best_score:
+            best_groups = optimized_groups
+            best_score = score
+
+    return best_groups
 
 
 def create_route(origin):
@@ -134,27 +186,25 @@ def create_route(origin):
         max_stops_per_route = origin.organization.max_stops_per_route
 
     nodos = list(origin.relational_nodos.all())
-    route_sequence = 0
+    route_groups = _build_best_route_groups(origin, nodos, max_stops_per_route)
 
-    for group in _build_route_groups(origin, nodos, max_stops_per_route):
-        sequenced_group = _two_opt(origin, _nearest_neighbor_sequence(origin, group))
-        route = [origin, *sequenced_group]
-        route_sequence += 1
+    for sequence_number, group in enumerate(route_groups, start=1):
+        route = [origin, *group]
         route_dic = get_route_dic(route)
         route_json = dic_to_json(route_dic)
-        route_object = origin.relational_route.create(path=route_json, sequence_number=route_sequence)
-        for stop_order, nodo in enumerate(sequenced_group, start=1):
+        route_object = origin.relational_route.create(path=route_json, sequence_number=sequence_number)
+        for stop_order, nodo in enumerate(group, start=1):
             nodo.has_route = True
             nodo.save(update_fields=["has_route"])
             if hasattr(nodo, "dispatch_stop"):
                 nodo.dispatch_stop.route = route_object
-                nodo.dispatch_stop.route_number = route_sequence
+                nodo.dispatch_stop.route_number = sequence_number
                 nodo.dispatch_stop.stop_order = stop_order
                 nodo.dispatch_stop.status = nodo.dispatch_stop.Statuses.ASSIGNED
                 nodo.dispatch_stop.save(update_fields=["route", "route_number", "stop_order", "status", "updated_at"])
 
     if origin.dispatch_batch:
         origin.dispatch_batch.status = origin.dispatch_batch.Statuses.GENERATED
-        origin.dispatch_batch.algorithm_version = "heuristic-sweep-v2"
+        origin.dispatch_batch.algorithm_version = "heuristic-sweep-v3"
         origin.dispatch_batch.save(update_fields=["status", "algorithm_version", "updated_at"])
     return origin.relational_route.order_by("sequence_number", "id").first()

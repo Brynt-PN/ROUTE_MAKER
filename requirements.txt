@@ -2,12 +2,15 @@ altgraph==0.17.3
 asgiref==3.7.2
 certifi==2023.5.7
 charset-normalizer==3.1.0
+dj-database-url==2.2.0
 Django==4.2.2
 django-crispy-forms==2.0
 geographiclib==2.0
 geopy==2.3.0
+gunicorn==23.0.0
 idna==3.4
 polyline==2.0.0
+psycopg2-binary==2.9.10
 pyinstaller==5.13.0
 pyinstaller-hooks-contrib==2023.6
 requests==2.31.0

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+import dj_database_url
 
 from .env import load_env_file
 
@@ -28,6 +29,11 @@ def get_bool_env(name: str, default: bool = False) -> bool:
     return value.strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
+def get_list_env(name: str, default: str = "") -> list[str]:
+    raw_value = os.getenv(name, default)
+    return [item.strip() for item in raw_value.split(",") if item.strip()]
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
@@ -40,19 +46,18 @@ GEOAPIFY_API_KEY = os.getenv('GEOAPIFY_API_KEY', '')
 GEOAPIFY_AUTOCOMPLETE_LANG = os.getenv('GEOAPIFY_AUTOCOMPLETE_LANG', 'es')
 GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS = os.getenv('GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS', 'pe')
 GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER = os.getenv('GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER', '')
-GEOAPIFY_AUTOCOMPLETE_LANG = os.getenv('GEOAPIFY_AUTOCOMPLETE_LANG', 'es')
-GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS = os.getenv('GEOAPIFY_AUTOCOMPLETE_COUNTRY_BIAS', 'pe')
-GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER = os.getenv('GEOAPIFY_AUTOCOMPLETE_COUNTRY_FILTER', '')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = get_bool_env('DJANGO_DEBUG', default=True)
 
-ALLOWED_HOSTS = [
-    host.strip() for host in os.getenv(
-        'DJANGO_ALLOWED_HOSTS',
-        '127.0.0.1,localhost,testserver,BryntPN.pythonanywhere.com',
-    ).split(',') if host.strip()
-]
+ALLOWED_HOSTS = get_list_env(
+    'DJANGO_ALLOWED_HOSTS',
+    '127.0.0.1,localhost,testserver,BryntPN.pythonanywhere.com',
+)
+CSRF_TRUSTED_ORIGINS = get_list_env(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'http://127.0.0.1:8000,http://localhost:8000',
+)
 
 
 # Application definition
@@ -70,6 +75,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,7 +108,17 @@ WSGI_APPLICATION = 'Route_Maker.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if os.getenv('POSTGRES_DB_NAME'):
+DATABASE_URL = os.getenv('DATABASE_URL', '').strip()
+DATABASE_CONN_MAX_AGE = int(os.getenv('DATABASE_CONN_MAX_AGE', '60'))
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=DATABASE_CONN_MAX_AGE,
+        )
+    }
+elif os.getenv('POSTGRES_DB_NAME'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -111,6 +127,7 @@ if os.getenv('POSTGRES_DB_NAME'):
             'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD', ''),
             'HOST': os.getenv('POSTGRES_DB_HOST', 'localhost'),
             'PORT': os.getenv('POSTGRES_DB_PORT', '5432'),
+            'CONN_MAX_AGE': DATABASE_CONN_MAX_AGE,
         }
     }
 else:
@@ -146,7 +163,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.getenv('DJANGO_TIME_ZONE', 'America/Lima')
 
 USE_I18N = True
 
@@ -157,6 +174,21 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE = get_bool_env('DJANGO_SESSION_COOKIE_SECURE', default=not DEBUG)
+CSRF_COOKIE_SECURE = get_bool_env('DJANGO_CSRF_COOKIE_SECURE', default=not DEBUG)
+SECURE_SSL_REDIRECT = get_bool_env('DJANGO_SECURE_SSL_REDIRECT', default=not DEBUG)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

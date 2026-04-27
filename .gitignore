@@ -4,3 +4,4 @@ RM_env/
 __pycache__/
 *.pyc
 *.sqlite3
+Route_Maker/staticfiles/
